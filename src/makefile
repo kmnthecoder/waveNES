@@ -25,7 +25,7 @@ LIBS =
 #-lmingw32 -lSDL2_image -lSDL2main -lSDL2
 
 # define the C/C++ source files
-SRCS = main.cpp
+SRCS = main.cpp nes.cpp cpu.cpp apu.cpp
 #
 
 # define the C/C++ object files 
