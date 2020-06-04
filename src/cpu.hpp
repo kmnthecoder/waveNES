@@ -2,6 +2,8 @@
 #define CPU_HPP
 
 #include <cstdint>
+#include <vector>
+#include <string>
 
 class Bus;
 
@@ -37,12 +39,12 @@ public:
     uint8_t ADDR_IMP(); // implied
     uint8_t ADDR_IMM(); // immediate
     uint8_t ADDR_ZP0(); // zero page
-    uint8_t ADDR_ZPX(); // zero page x
-    uint8_t ADDR_ZPY(); // zero page y
+    uint8_t ADDR_ZPX(); // zero page x offset
+    uint8_t ADDR_ZPY(); // zero page y offset
     uint8_t ADDR_REL(); // relative
     uint8_t ADDR_ABS(); // absolute
-    uint8_t ADDR_ABX(); // absolute x
-    uint8_t ADDR_ABY(); // absolute y
+    uint8_t ADDR_ABX(); // absolute x offset
+    uint8_t ADDR_ABY(); // absolute y offset
     uint8_t ADDR_IND(); // indirect
     uint8_t ADDR_IZX(); // indirect zero page x
     uint8_t ADDR_IZY(); // indirect zero page y
@@ -105,9 +107,9 @@ public:
     inline uint8_t OP_TXS();
     inline uint8_t OP_TYA();
 
-    uint8_t OP_UNOFF(); // unofficial
+    uint8_t OP_UOF(); // unofficial
 
-    void step();
+    void tick();
     void reset();
     void InterruptReq();
     void NonMaskInterrupt();
@@ -120,7 +122,6 @@ public:
     uint8_t opcode = 0x00;
     uint8_t cycles = 0;
 
-
 private:
     Bus *bus = nullptr;
 
@@ -131,6 +132,16 @@ private:
     // access status register
     uint8_t GetFlag(PFLAGS flag);
     void SetFlag(PFLAGS flag, bool v);
+
+    struct INSTRUCTION
+    {
+        std::string name;
+        uint8_t(CPU::*execute)(void) = nullptr;
+        uint8_t(CPU::*addrmode)(void) = nullptr;
+        uint8_t cycles = 0;
+    };
+
+    std::vector<INSTRUCTION> LookupTable;
 };
 
 #endif
