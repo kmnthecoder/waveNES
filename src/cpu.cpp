@@ -313,6 +313,81 @@ void CPU::tick()
     cycles--;
 }
 
+uint8_t CPU::fetch()
+{
+    if (!(LookupTable[opcode].addrmode == &CPU::ADDR_IMP))
+    {
+        fetched = read(addr_abs);
+    }
+    return fetched;
+}
+
+void CPU::reset()
+{
+    reg_a = 0;
+    reg_x = 0;
+    reg_y = 0;
+    sp = 0xFD;
+    p_flag = 0x00 | U;
+
+    addr_abs = 0xFFFC;
+    uint16_t lo = read(addr_abs + 0);
+    uint16_t hi = read(addr_abs + 1);
+
+    pc = (hi << 8) | lo;
+
+    addr_rel = 0x0000;
+    addr_abs = 0x0000;
+    fetched = 0x00;
+
+    cycles = 8;
+}
+
+void CPU::InterruptReq()
+{
+    if (GetFlag(I) == 0)
+    {
+        write(0x0100 + sp, (pc >> 8) & 0x00FF);
+        sp--;
+        write(0x0100 + sp, pc & 0x00FF);
+        sp--;
+
+        SetFlag(B, 0);
+        SetFlag(U, 1);
+        SetFlag(I, 1);
+        write(0x0100 + sp, p_flag);
+        sp--;
+
+        addr_abs = 0xFFFE;
+        uint16_t lo = read(addr_abs + 0);
+        uint16_t hi = read(addr_abs + 1);
+        pc = (hi << 8) | lo;
+
+        cycles = 7;
+    }
+}
+
+void CPU::NonMaskInterrupt()
+{
+    write(0x0100 + sp, (pc >> 8) & 0x00FF);
+    sp--;
+    write(0x0100 + sp, pc & 0x00FF);
+    sp--;
+
+    SetFlag(B, 0);
+    SetFlag(U, 1);
+    SetFlag(I, 1);
+    write(0x0100 + sp, p_flag);
+    sp--;
+
+    addr_abs = 0xFFFA;
+    uint16_t lo = read(addr_abs + 0);
+    uint16_t hi = read(addr_abs + 1);
+    pc = (hi << 8) | lo;
+
+    cycles = 8;
+}
+
 uint8_t CPU::ADDR_IMP()
 {
     fetched = reg_a;
@@ -349,7 +424,17 @@ uint8_t CPU::ADDR_ZPY()
     return 0;
 }
 
-// ADDR_REL
+uint8_t CPU::ADDR_REL()
+{
+    addr_rel = read(pc);
+    pc++;
+
+    if (addr_rel & 0x80)
+    {
+        addr_rel |= 0xFF00;
+    }
+    return 0;
+}
 
 uint8_t CPU::ADDR_ABS()
 {
@@ -424,6 +509,40 @@ uint8_t CPU::ADDR_IND()
     {
         addr_abs = (read(ptr + 1) << 8) | read(ptr + 0);
     }
-    
+
     return 0;
+}
+
+uint8_t CPU::ADDR_IZX()
+{
+    uint16_t t = read(pc);
+    pc++;
+
+    uint16_t lo = read((uint16_t)(t + (uint16_t)reg_x) & 0x00FF);
+    uint16_t hi = read((uint16_t)(t + (uint16_t)reg_x + 1) & 0x00FF);
+
+    addr_abs = (hi << 8) | lo;
+
+    return 0;
+}
+
+uint8_t CPU::ADDR_IZY()
+{
+    uint16_t t = read(pc);
+    pc++;
+
+    uint16_t lo = read(t & 0x00FF);
+    uint16_t hi = read((t + 1) & 0x00FF);
+
+    addr_abs = (hi << 8) | lo;
+    addr_abs += reg_y;
+
+    if ((addr_abs & 0xFF00) != (hi << 8))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }

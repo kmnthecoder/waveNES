@@ -46,8 +46,8 @@ public:
     uint8_t ADDR_ABX(); // absolute x offset
     uint8_t ADDR_ABY(); // absolute y offset
     uint8_t ADDR_IND(); // indirect
-    uint8_t ADDR_IZX(); // indirect zero page x
-    uint8_t ADDR_IZY(); // indirect zero page y
+    uint8_t ADDR_IZX(); // indirect zero page x offset
+    uint8_t ADDR_IZY(); // indirect zero page y offset
 
     // opcodes
     inline uint8_t OP_ADC();
@@ -107,7 +107,7 @@ public:
     inline uint8_t OP_TXS();
     inline uint8_t OP_TYA();
 
-    uint8_t OP_UOF(); // unofficial
+    inline uint8_t OP_UOF(); // unofficial
 
     void tick();
     void reset();
