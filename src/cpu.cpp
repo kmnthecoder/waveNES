@@ -387,7 +387,7 @@ void CPU::NonMaskInterrupt()
 
     cycles = 8;
 }
-
+ 
 uint8_t CPU::ADDR_IMP()
 {
     fetched = reg_a;

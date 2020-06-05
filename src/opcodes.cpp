@@ -1,5 +1,6 @@
 #include "cpu.hpp"
 
+// Add M to A with Carry
 inline uint8_t CPU::OP_ADC()
 {
     fetch();
@@ -12,6 +13,7 @@ inline uint8_t CPU::OP_ADC()
     return 1;
 }
 
+// AND M with A
 inline uint8_t CPU::OP_AND()
 {
     fetch();
@@ -21,10 +23,13 @@ inline uint8_t CPU::OP_AND()
     return 1;
 }
 
+// Shift Left One Bit (M or A)
 inline uint8_t CPU::OP_ASL() { return 0; }
 
+// Branch on Carry Clear
 inline uint8_t CPU::OP_BCC() { return 0; }
 
+// Branch on Carry Set
 inline uint8_t CPU::OP_BCS()
 {
     if (GetFlag(C) == 1)
@@ -42,38 +47,53 @@ inline uint8_t CPU::OP_BCS()
     return 0;
 }
 
+// Branch on Result Zero
 inline uint8_t CPU::OP_BEQ() { return 0; }
 
+// Test Bits in M with A
 inline uint8_t CPU::OP_BIT() { return 0; }
 
+// Branch on Result Minus
 inline uint8_t CPU::OP_BMI() { return 0; }
 
+// Branch on Result not Zero
 inline uint8_t CPU::OP_BNE() { return 0; }
 
+// Branch on Result Plus
 inline uint8_t CPU::OP_BPL() { return 0; }
 
+// Force Break
 inline uint8_t CPU::OP_BRK() { return 0; }
 
+// Branch on Overflow Clear
 inline uint8_t CPU::OP_BVC() { return 0; }
 
+// Branch on Overflow Set
 inline uint8_t CPU::OP_BVS() { return 0; }
 
+// Clear Carry Flag
 inline uint8_t CPU::OP_CLC()
 {
     SetFlag(C, false);
     return 0;
 }
 
+// Clear Decimal Mode
 inline uint8_t CPU::OP_CLD() { return 0; }
 
+// Clear Interrupt Disable Bit
 inline uint8_t CPU::OP_CLI() { return 0; }
 
+// Clear Overflow Flag
 inline uint8_t CPU::OP_CLV() { return 0; }
 
+// Compare M and A
 inline uint8_t CPU::OP_CMP() { return 0; }
 
+// Compare M and X
 inline uint8_t CPU::OP_CPX() { return 0; }
 
+// Compare M and Y
 inline uint8_t CPU::OP_CPY() { return 0; }
 
 inline uint8_t CPU::OP_DEC() { return 0; }
@@ -130,7 +150,19 @@ inline uint8_t CPU::OP_ROL() { return 0; }
 
 inline uint8_t CPU::OP_ROR() { return 0; }
 
-inline uint8_t CPU::OP_RTI() { return 0; }
+inline uint8_t CPU::OP_RTI()
+{
+    sp++;
+    p_flag = read(0x0100 + sp);
+    p_flag &= ~B;
+    p_flag &= ~U;
+
+    sp++;
+    pc = (uint16_t)read(0x0100 + sp);
+    sp++;
+    pc |= (uint16_t)read(0x0100 + sp) << 8;
+    return 0;
+}
 
 inline uint8_t CPU::OP_RTS() { return 0; }
 

@@ -2,8 +2,8 @@
 
 Bus::Bus()
 {
-    ram.fill(0x00);
     cpu.BusConnection(this);
+    ram.fill(0x00);
 }
 
 Bus::~Bus() {}
@@ -14,7 +14,6 @@ uint8_t Bus::read(int16_t addr, bool readOnly)
     {
         return ram[addr];
     }
-
     return 0x00;
 }
 

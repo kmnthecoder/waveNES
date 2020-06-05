@@ -28,12 +28,48 @@ public:
     };
 
     // cpu registers
-    uint8_t reg_a = 0x00; // accumulator
-    uint8_t reg_x = 0x00;
-    uint8_t reg_y = 0x00;
+    uint8_t reg_a = 0x00;  // accumulator
+    uint8_t reg_x = 0x00;  // x register
+    uint8_t reg_y = 0x00;  // y register
     uint8_t p_flag = 0x00; // status & processor flag
-    uint8_t sp = 0x00;
-    uint16_t pc = 0x0000;
+    uint8_t sp = 0x00;     // stack pointer
+    uint16_t pc = 0x0000;  // program counter
+
+    void tick();  // one tick of CPU
+    void reset(); // resets CPU into known state
+    void InterruptReq();
+    void NonMaskInterrupt(); // same as interrupt request, but can't be disabled
+
+private:
+    Bus *bus = nullptr;
+
+    // call to bus r/w functions
+    uint8_t read(int16_t addr);
+    void write(uint16_t addr, uint8_t data);
+
+    // access status register
+    uint8_t GetFlag(PFLAGS flag);
+    void SetFlag(PFLAGS flag, bool v);
+
+    struct INSTRUCTION
+    {
+        std::string name;
+        uint8_t (CPU::*execute)(void) = nullptr;
+        uint8_t (CPU::*addrmode)(void) = nullptr;
+        uint8_t cycles = 0;
+    };
+
+    std::vector<INSTRUCTION> LookupTable; // table for opcodes/address modes
+
+    uint8_t fetch();
+
+    uint8_t fetched = 0x00;
+    uint16_t temp = 0x0000;
+    uint16_t addr_abs = 0x0000;
+    uint16_t addr_rel = 0x00;
+    uint8_t opcode = 0x00;
+    uint8_t cycles = 0;
+    uint32_t clock_count = 0;
 
     // addressing modes
     uint8_t ADDR_IMP(); // implied
@@ -108,40 +144,6 @@ public:
     inline uint8_t OP_TYA();
 
     inline uint8_t OP_UOF(); // unofficial
-
-    void tick();
-    void reset();
-    void InterruptReq();
-    void NonMaskInterrupt();
-
-    uint8_t fetch();
-    uint8_t fetched = 0x00;
-
-    uint16_t addr_abs = 0x0000;
-    uint16_t addr_rel = 0x00;
-    uint8_t opcode = 0x00;
-    uint8_t cycles = 0;
-
-private:
-    Bus *bus = nullptr;
-
-    // call to bus r/w functions
-    uint8_t read(int16_t addr);
-    void write(uint16_t addr, uint8_t data);
-
-    // access status register
-    uint8_t GetFlag(PFLAGS flag);
-    void SetFlag(PFLAGS flag, bool v);
-
-    struct INSTRUCTION
-    {
-        std::string name;
-        uint8_t(CPU::*execute)(void) = nullptr;
-        uint8_t(CPU::*addrmode)(void) = nullptr;
-        uint8_t cycles = 0;
-    };
-
-    std::vector<INSTRUCTION> LookupTable;
 };
 
 #endif
