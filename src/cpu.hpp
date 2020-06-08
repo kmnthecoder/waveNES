@@ -48,8 +48,8 @@ private:
     void write(uint16_t addr, uint8_t data);
 
     // access status register
-    uint8_t GetFlag(PFLAGS flag);
-    void SetFlag(PFLAGS flag, bool v);
+    uint8_t GetFlag(PFLAGS f);
+    void SetFlag(PFLAGS f, bool v);
 
     struct INSTRUCTION
     {
@@ -142,7 +142,6 @@ private:
     inline uint8_t OP_TXA();
     inline uint8_t OP_TXS();
     inline uint8_t OP_TYA();
-
     inline uint8_t OP_UOF(); // unofficial
 };
 
