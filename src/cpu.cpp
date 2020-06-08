@@ -269,12 +269,12 @@ CPU::~CPU() {}
 
 uint8_t CPU::read(int16_t addr)
 {
-    return bus->read(addr, false);
+    return bus->cpuRead(addr, false);
 }
 
 void CPU::write(uint16_t addr, uint8_t data)
 {
-    bus->write(addr, data);
+    bus->cpuWrite(addr, data);
 }
 
 uint8_t CPU::GetFlag(PFLAGS f)
@@ -387,7 +387,7 @@ void CPU::NonMaskInterrupt()
 
     cycles = 8;
 }
- 
+
 uint8_t CPU::ADDR_IMP()
 {
     fetched = reg_a;

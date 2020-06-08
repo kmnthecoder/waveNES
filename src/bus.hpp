@@ -2,9 +2,12 @@
 #define BUS_HPP
 
 #include "cpu.hpp"
+#include "ppu.hpp"
+#include "cartridge.hpp"
 
 #include <cstdint>
 #include <array>
+#include <memory>
 
 class Bus
 {
@@ -12,11 +15,20 @@ public:
     Bus();
     ~Bus();
 
-    std::array<uint8_t, 64 * 1024> ram; // 64Kb
+    std::array<uint8_t, 2048> cpuRam;
     CPU cpu;
+    PPU ppu;
+    std::shared_ptr<Cartridge> cartridge;
 
-    uint8_t read(int16_t addr, bool readOnly = false);
-    void write(uint16_t addr, uint8_t data);
+    uint8_t cpuRead(int16_t addr, bool readOnly = false);
+    void cpuWrite(uint16_t addr, uint8_t data);
+
+    void insertCartridge(const std::shared_ptr<Cartridge> &cartridge);
+    void reset();
+    void clock();
+
+private:
+    uint32_t clockCount = 0;
 };
 
 #endif
