@@ -14,11 +14,14 @@ public:
     Cartridge(const std::string &file);
     ~Cartridge();
 
-    bool cpuRead(int16_t addr, uint8_t data);
+    bool cpuRead(int16_t addr, uint8_t &data);
     bool cpuWrite(uint16_t addr, uint8_t data);
 
-    bool ppuRead(int16_t addr, uint8_t data);
+    bool ppuRead(int16_t addr, uint8_t &data);
     bool ppuWrite(uint16_t addr, uint8_t data);
+
+    // REMOVE
+    bool ImageValid();
 
 private:
     std::vector<uint8_t> PRGMemory;
@@ -29,6 +32,9 @@ private:
     uint8_t CHRBanks = 0;
 
     std::shared_ptr<Mapper> mapper;
+
+    // REMOVE
+    bool bImageValid = false;
 };
 
 #endif

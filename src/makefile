@@ -7,8 +7,10 @@
 CC = g++
 
 # define any compile-time flags
-CFLAGS = -g -Wall
-# -static-libgcc -static-libstdc++
+CFLAGS = -g -Wall -static -std=c++17
+# -static-libgcc -static-libstdc++ -std=c++17
+
+
 
 # define any directories containing header files other than /usr/include
 # INCLUDES = -IC:\MinGW\include\SDL2
@@ -21,12 +23,12 @@ CFLAGS = -g -Wall
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS =
+LIBS = -luser32 -lgdi32 -lopengl32 -lgdiplus -lShlwapi -lstdc++fs
 #-lmingw32 -lSDL2_image -lSDL2main -lSDL2
 
 # define the C/C++ source files
-SRCS = main.cpp cpu.cpp bus.cpp opcodes.cpp ppu.cpp cartridge.cpp mapper.cpp mapper0.cpp
-# nes.cppapu.cpp
+SRCS = cpu.cpp bus.cpp opcodes.cpp ppu.cpp cartridge.cpp mapper.cpp mapper0.cpp pge.cpp
+# main.cpp
 
 # define the C/C++ object files 
 # This uses Suffix Replacement within a macro:

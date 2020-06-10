@@ -3,6 +3,9 @@
 
 #include "cartridge.hpp"
 
+// REMOVE
+#include "olcPixelGameEngine.h"
+
 #include <cstdint>
 #include <memory>
 
@@ -19,7 +22,7 @@ public:
     void ppuWrite(uint16_t addr, uint8_t data);
 
     void ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge);
-    void clock();
+    void tick();
 
 private:
     std::shared_ptr<Cartridge> cartridge;
@@ -28,7 +31,21 @@ private:
     uint8_t paletteTable[32];
     //uint8_t patternTable[2][4096]; // special
 
+    // REMOVE
+private:
+    olc::Pixel palScreen[0x40];
+    olc::Sprite sprScreen = olc::Sprite(256, 240);
+    olc::Sprite sprNameTable[2] = {olc::Sprite(256, 240), olc::Sprite(256, 240)};
+    olc::Sprite sprPatternTable[2] = {olc::Sprite(128, 128), olc::Sprite(128, 128)};
+
+public:
+    // Debugging Utilities
+    olc::Sprite &GetScreen();
+    olc::Sprite &GetNameTable(uint8_t i);
+    olc::Sprite &GetPatternTable(uint8_t i);
     bool frameComplete = false;
+
+private:
     int16_t scanline = 0;
     int16_t cycle = 0;
 };

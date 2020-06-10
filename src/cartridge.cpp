@@ -19,6 +19,9 @@ Cartridge::Cartridge(const std::string &file)
         char unused[5];
     } header;
 
+    // REMOVE
+    bImageValid = false;
+
     std::ifstream fileStream;
     fileStream.open(file, std::ifstream::binary);
     if (fileStream.is_open())
@@ -62,13 +65,14 @@ Cartridge::Cartridge(const std::string &file)
             break;
         }
 
+        bImageValid = true;
         fileStream.close();
     }
 }
 
 Cartridge::~Cartridge() {}
 
-bool Cartridge::cpuRead(int16_t addr, uint8_t data)
+bool Cartridge::cpuRead(int16_t addr, uint8_t &data)
 {
     uint32_t mapped_addr = 0;
     if (mapper->cpuMapRead(addr, mapped_addr))
@@ -95,7 +99,7 @@ bool Cartridge::cpuWrite(uint16_t addr, uint8_t data)
     }
 }
 
-bool Cartridge::ppuRead(int16_t addr, uint8_t data)
+bool Cartridge::ppuRead(int16_t addr, uint8_t &data)
 {
     uint32_t mapped_addr = 0;
     if (mapper->cpuMapRead(addr, mapped_addr))
@@ -120,4 +124,10 @@ bool Cartridge::ppuWrite(uint16_t addr, uint8_t data)
     {
         return false;
     }
+}
+
+// REMOVE
+bool Cartridge::ImageValid()
+{
+    return bImageValid;
 }

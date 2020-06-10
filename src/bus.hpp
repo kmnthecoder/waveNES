@@ -16,6 +16,7 @@ public:
     ~Bus();
 
     std::array<uint8_t, 2048> cpuRam;
+    //uint8_t cpuRam[2048];
     CPU cpu;
     PPU ppu;
     std::shared_ptr<Cartridge> cartridge;
@@ -25,7 +26,7 @@ public:
 
     void insertCartridge(const std::shared_ptr<Cartridge> &cartridge);
     void reset();
-    void clock();
+    void tick();
 
 private:
     uint32_t clockCount = 0;

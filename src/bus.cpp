@@ -3,7 +3,7 @@
 Bus::Bus()
 {
     cpu.BusConnection(this);
-    cpuRam.fill(0x00);
+    //cpuRam.fill(0x00);
 }
 
 Bus::~Bus() {}
@@ -53,9 +53,9 @@ void Bus::reset()
     clockCount = 0;
 }
 
-void Bus::clock()
+void Bus::tick()
 {
-    ppu.clock();
+    ppu.tick();
     if (clockCount % 3 == 0)
     {
         cpu.tick();
