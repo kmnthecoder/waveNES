@@ -216,7 +216,7 @@ private:
 		nes.cpu.reset();
 		*/
 
-		/*
+		
 		cart = std::make_shared<Cartridge>("nestest.nes");
 		if (!cart->ImageValid())
 			return false;
@@ -229,7 +229,7 @@ private:
 
 		// Reset NES
 		nes.reset();
-		*/
+		
 
 		/*
 		std::stringstream ss;
@@ -325,9 +325,11 @@ private:
 };
 
 int main()
-{
+{	
+	
 	Demo_olc6502 demo;
 	demo.Construct(780, 480, 2, 2);
 	demo.Start();
+	
 	return 0;
 }

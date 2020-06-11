@@ -3,7 +3,7 @@
 Bus::Bus()
 {
     cpu.BusConnection(this);
-    //cpuRam.fill(0x00);
+    cpuRam.fill(0x00);
 }
 
 Bus::~Bus() {}
