@@ -168,56 +168,11 @@ private:
 		}
 	}
 
-	bool OnUserCreate()
+	bool OnUserCreate(const char *filepath)
 	{
-		// Load Program (assembled at https://www.masswerk.at/6502/assembler.html)
-		/*
-			*=$8000
-			LDX #10
-			STX $0000
-			LDX #3
-			STX $0001
-			LDY $0000
-			LDA #0
-			CLC
-			loop
-			ADC $0001
-			DEY
-			BNE loop
-			STA $0002
-			NOP
-			NOP
-			NOP
-		*/
+		std::cout << "Loading: " << filepath << std::endl;
 
-		/*
-		// Convert hex string into bytes for RAM
-		std::stringstream ss;
-		ss << "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA";
-		//uint16_t nOffset = 0x8000;
-		uint16_t nOffset = 0x0000;
-		while (!ss.eof())
-		{
-			std::string b;
-			ss >> b;
-			nes.cpuRam[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
-		}
-
-		// Set Reset Vector
-		nes.cpuRam[0xFFFC] = 0x00;
-		nes.cpuRam[0xFFFD] = 0x80;
-
-		// Dont forget to set IRQ and NMI vectors if you want to play with those
-
-		// Extract dissassembly
-		mapAsm = nes.cpu.disassemble(0x0000, 0xFFFF);
-
-		// Reset
-		nes.cpu.reset();
-		*/
-
-		
-		cart = std::make_shared<Cartridge>("nestest.nes");
+		cart = std::make_shared<Cartridge>(filepath);
 		if (!cart->ImageValid())
 			return false;
 
@@ -229,36 +184,13 @@ private:
 
 		// Reset NES
 		nes.reset();
-		
-
-		/*
-		std::stringstream ss;
-		ss << "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA";
-		uint16_t nOffset = 0x8000;
-		//uint16_t nOffset = 0x0000;
-		while (!ss.eof())
-		{
-			std::string b;
-			ss >> b;
-			nes.cpuRam[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
-		}
-
-		// Set Reset Vector
-		nes.cpuRam[0xFFFC] = 0x00;
-		nes.cpuRam[0xFFFD] = 0x80;
-
-		mapAsm = nes.cpu.disassemble(0x0000, 0xFFFF);
-
-		// Reset
-		nes.cpu.reset();
-		*/
 
 		return true;
 	}
 
 	bool OnUserUpdate(float fElapsedTime)
 	{
-		Clear(olc::DARK_BLUE);
+		Clear(olc::VERY_DARK_MAGENTA);
 
 		if (bEmulationRun)
 		{
@@ -317,19 +249,29 @@ private:
 			nes.reset();
 
 		DrawCpu(516, 2);
-		DrawCode(516, 72, 26);
+		DrawCode(516, 72, 24);
 
 		DrawSprite(0, 0, &nes.ppu.GetScreen(), 2);
 		return true;
 	}
 };
 
-int main()
-{	
-	
+int main(int argc, char **argv)
+{
+	//const char *file = argv[1];
+	//std::cout << "file = "<< file << std::endl;
+
 	Demo_olc6502 demo;
-	demo.Construct(780, 480, 2, 2);
+	demo.Construct(780, 480, 2, 2, argv[1]);
 	demo.Start();
-	
+
 	return 0;
 }
+
+// Controls
+/*
+C - nes tick - whole cpu instruction
+F - one whole frame
+R - reset
+SPACE - run
+*/

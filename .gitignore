@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+roms/
+*.nes
+cp commands

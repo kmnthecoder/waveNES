@@ -7,7 +7,7 @@
 CC = g++
 
 # define any compile-time flags
-CFLAGS = -g -Wall -static -std=c++17
+CFLAGS = -g -Wall -std=c++17
 # -static-libgcc -static-libstdc++ -std=c++17
 
 
@@ -23,8 +23,9 @@ CFLAGS = -g -Wall -static -std=c++17
 # define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
-LIBS = -luser32 -lgdi32 -lopengl32 -lgdiplus -lShlwapi -lstdc++fs
+LIBS =  -lgdi32 -lopengl32 -lgdiplus -lShlwapi
 #-lmingw32 -lSDL2_image -lSDL2main -lSDL2
+# -lstdc++fs -luser32
 
 # define the C/C++ source files
 SRCS = cpu.cpp bus.cpp opcodes.cpp ppu.cpp cartridge.cpp mapper.cpp mapper0.cpp pge.cpp
