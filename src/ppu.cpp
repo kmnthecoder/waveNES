@@ -85,6 +85,10 @@ uint8_t PPU::cpuRead(int16_t addr, bool readOnly)
     case 0x0001: // mask
         break;
     case 0x0002: // status
+        status.vertical_blank = 1;
+        data = (status.reg & 0xE0) | (ppu_data_buffer & 0x1F);
+        status.vertical_blank = 0;
+        addr_latch = 0;
         break;
     case 0x0003: // oam address
         break;
@@ -95,6 +99,11 @@ uint8_t PPU::cpuRead(int16_t addr, bool readOnly)
     case 0x0006: // ppu address
         break;
     case 0x0007: // ppu data
+        data = ppu_data_buffer;
+        ppu_data_buffer = ppuRead(ppu_addr);
+
+        if (ppu_addr > 0x3f00)
+            data = ppu_data_buffer;
         break;
     }
 
@@ -105,8 +114,10 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     switch (addr)
     {
     case 0x0000: // control
+        control.reg = data;
         break;
     case 0x0001: // mask
+        mask.reg = data;
         break;
     case 0x0002: // status
         break;
@@ -117,8 +128,19 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     case 0x0005: // scroll
         break;
     case 0x0006: // ppu address
+        if (addr_latch == 0)
+        {
+            ppu_addr = (ppu_addr & 0x00FF) | (data << 8);
+            addr_latch = 1;
+        }
+        else
+        {
+            ppu_addr = (ppu_addr & 0xFF00) | data;
+            addr_latch = 0;
+        }
         break;
     case 0x0007: // ppu data
+        ppuWrite(ppu_addr, data);
         break;
     }
 }

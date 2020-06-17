@@ -28,7 +28,7 @@ private:
 
     uint8_t nameTable[2][1024];
     uint8_t paletteTable[32];
-    uint8_t patternTable[2][4096]; // special
+    uint8_t patternTable[2][4096];
 
 private:
     olc::Pixel palScreen[0x40];
@@ -46,6 +46,51 @@ public:
 private:
     int16_t scanline = 0;
     int16_t cycle = 0;
+
+    union {
+        struct
+        {
+            uint8_t unused : 5;
+            uint8_t sprite_overflow : 1;
+            uint8_t sprite_zero_hit : 1;
+            uint8_t vertical_blank : 1;
+        };
+        uint8_t reg;
+    } status;
+
+    union {
+        struct
+        {
+            uint8_t grayscake : 1;
+            uint8_t render_bg_left : 1;
+            uint8_t render_sprites_left : 1;
+            uint8_t render_bg : 1;
+            uint8_t render_sprites : 1;
+            uint8_t enhance_red : 1;
+            uint8_t enhance_green : 1;
+            uint8_t enhance_blue : 1;
+        };
+        uint8_t reg;
+    } mask;
+
+    union PPUCTRL {
+        struct
+        {
+            uint8_t nametable_x : 1;
+            uint8_t nametable_y : 1;
+            uint8_t increment_mode : 1;
+            uint8_t pattern_sprite : 1;
+            uint8_t pattern_background : 1;
+            uint8_t sprite_size : 1;
+            uint8_t slave_mode : 1;
+            uint8_t enable_nmi : 1;
+        };
+        uint8_t reg;
+    } control;
+
+    uint8_t addr_latch = 0x00;
+    uint8_t ppu_data_buffer = 0x00;
+    uint16_t ppu_addr = 0x0000;
 };
 
 #endif
