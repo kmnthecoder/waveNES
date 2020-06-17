@@ -131,6 +131,26 @@ uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
     if (cartridge->ppuRead(addr, data))
     {
     }
+    else if (addr >= 0x0000 && addr <= 0x1FFF)
+    {
+        data = patternTable[(addr & 0x1000) >> 12][addr & 0x0FFF];
+    }
+    else if (addr >= 0x2000 && addr <= 0x3EFF)
+    {
+    }
+    else if (addr >= 0x3F00 && addr <= 0x3FFF)
+    {
+        addr &= 0x001F;
+        if (addr == 0x0010)
+            addr = 0x0000;
+        if (addr == 0x0014)
+            addr = 0x0004;
+        if (addr == 0x0018)
+            addr = 0x0008;
+        if (addr == 0x001C)
+            addr = 0x000C;
+        data = paletteTable[addr];
+    }
 
     return data;
 }
@@ -142,6 +162,26 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
     if (cartridge->ppuWrite(addr, data))
     {
     }
+    else if (addr >= 0x0000 && addr <= 0x1FFF)
+    {
+        patternTable[(addr & 0x1000) >> 12][addr & 0x0FFF] = data;
+    }
+    else if (addr >= 0x2000 && addr <= 0x3EFF)
+    {
+    }
+    else if (addr >= 0x3F00 && addr <= 0x3FFF)
+    {
+        addr &= 0x001F;
+        if (addr == 0x0010)
+            addr = 0x0000;
+        if (addr == 0x0014)
+            addr = 0x0004;
+        if (addr == 0x0018)
+            addr = 0x0008;
+        if (addr == 0x001C)
+            addr = 0x000C;
+        paletteTable[addr] = data;
+    }
 }
 
 void PPU::ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge)
@@ -151,8 +191,7 @@ void PPU::ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge)
 
 void PPU::tick()
 {
-    // fake // REMOVE
-    sprScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
+    spriteScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
 
     cycle++;
     if (cycle >= 341)
@@ -167,18 +206,47 @@ void PPU::tick()
     }
 }
 
-// REMOVE
 olc::Sprite &PPU::GetScreen()
 {
-    return sprScreen;
+    return spriteScreen;
 }
 
 olc::Sprite &PPU::GetNameTable(uint8_t i)
 {
-    return sprNameTable[i];
+    return spriteNameTable[i];
 }
 
-olc::Sprite &PPU::GetPatternTable(uint8_t i)
+olc::Sprite &PPU::GetPatternTable(uint8_t i, uint8_t palette)
 {
-    return sprPatternTable[i];
+    for (uint16_t tileY = 0; tileY < 16; tileY++)
+    {
+        for (uint16_t tileX = 0; tileX < 16; tileX++)
+        {
+            uint16_t offset = tileY * 256 + tileX * 16;
+
+            for (uint16_t row = 0; row < 8; row++)
+            {
+                uint8_t tile_lsb = ppuRead(i * 0x1000 + offset + row + 0);
+                uint8_t tile_msb = ppuRead(i * 0x1000 + offset + row + 8);
+
+                for (uint16_t col = 0; col < 8; col++)
+                {
+                    uint8_t pixel = (tile_lsb & 0x01) + (tile_msb & 0x01);
+                    tile_lsb >>= 1;
+                    tile_msb >>= 1;
+
+                    spritePatternTable[i].SetPixel(tileX * 8 + (7 - col),
+                                                   tileY * 8 + row,
+                                                   GetColourFromPaletteRam(palette, pixel));
+                }
+            }
+        }
+    }
+
+    return spritePatternTable[i];
+}
+
+olc::Pixel &PPU::GetColourFromPaletteRam(uint8_t palette, uint8_t pixel)
+{
+    return palScreen[ppuRead(0x3F00 + (palette << 2) + pixel)];
 }

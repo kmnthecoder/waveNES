@@ -3,7 +3,6 @@
 
 #include "cartridge.hpp"
 
-// REMOVE
 #include "olcPixelGameEngine.h"
 
 #include <cstdint>
@@ -29,20 +28,19 @@ private:
 
     uint8_t nameTable[2][1024];
     uint8_t paletteTable[32];
-    //uint8_t patternTable[2][4096]; // special
+    uint8_t patternTable[2][4096]; // special
 
-    // REMOVE
 private:
     olc::Pixel palScreen[0x40];
-    olc::Sprite sprScreen = olc::Sprite(256, 240);
-    olc::Sprite sprNameTable[2] = {olc::Sprite(256, 240), olc::Sprite(256, 240)};
-    olc::Sprite sprPatternTable[2] = {olc::Sprite(128, 128), olc::Sprite(128, 128)};
+    olc::Sprite spriteScreen = olc::Sprite(256, 240);
+    olc::Sprite spriteNameTable[2] = {olc::Sprite(256, 240), olc::Sprite(256, 240)};
+    olc::Sprite spritePatternTable[2] = {olc::Sprite(128, 128), olc::Sprite(128, 128)};
 
 public:
-    // Debugging Utilities
     olc::Sprite &GetScreen();
     olc::Sprite &GetNameTable(uint8_t i);
-    olc::Sprite &GetPatternTable(uint8_t i);
+    olc::Sprite &GetPatternTable(uint8_t i, uint8_t palette);
+    olc::Pixel &GetColourFromPaletteRam(uint8_t palette, uint8_t pixel);
     bool frameComplete = false;
 
 private:

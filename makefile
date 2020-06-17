@@ -3,7 +3,7 @@ CC := g++
 SRC_DIR := src
 OBJ_DIR := obj
 # or . if you want it in the current directory
-BIN_DIR := bin
+BIN_DIR := .
 EXENAME := nes
 
 EXE := $(BIN_DIR)/$(EXENAME)
@@ -40,6 +40,7 @@ $(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
 clean:
-	@$(RM) -rv $(BIN_DIR) $(OBJ_DIR)
+	@$(RM) -rv $(OBJ_DIR) nes.exe
+#$(BIN_DIR)
 
 -include $(OBJ:.o=.d)

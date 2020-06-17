@@ -19,7 +19,6 @@ Cartridge::Cartridge(const std::string &file)
         char unused[5];
     } header;
 
-    // REMOVE
     bImageValid = false;
 
     std::ifstream fileStream;
@@ -126,7 +125,6 @@ bool Cartridge::ppuWrite(uint16_t addr, uint8_t data)
     }
 }
 
-// REMOVE
 bool Cartridge::ImageValid()
 {
     return bImageValid;

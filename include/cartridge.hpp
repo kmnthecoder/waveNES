@@ -20,7 +20,6 @@ public:
     bool ppuRead(int16_t addr, uint8_t &data);
     bool ppuWrite(uint16_t addr, uint8_t data);
 
-    // REMOVE
     bool ImageValid();
 
 private:
@@ -33,7 +32,6 @@ private:
 
     std::shared_ptr<Mapper> mapper;
 
-    // REMOVE
     bool bImageValid = false;
 };
 

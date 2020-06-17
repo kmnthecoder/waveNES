@@ -1484,7 +1484,7 @@ namespace olc
 #if !defined(PGE_USE_CUSTOM_START)
 	olc::rcode PixelGameEngine::Start()
 	{
-		
+
 		if (platform->ApplicationStartUp() != olc::OK)
 			return olc::FAIL;
 

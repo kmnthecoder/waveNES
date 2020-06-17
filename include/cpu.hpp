@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 
-// REMOVE
 #include <map>
 
 class Bus;
@@ -150,7 +149,6 @@ private:
     inline uint8_t OP_TYA();
     inline uint8_t OP_UOF(); // unofficial
 
-// REMOVE CODE
 public:
     std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop);
 };
