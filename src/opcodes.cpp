@@ -4,7 +4,7 @@
 inline uint8_t CPU::OP_ADC()
 {
     fetch();
-    uint16_t temp = (uint16_t)reg_a + (uint16_t)fetched + (uint16_t)GetFlag(C);
+    temp = (uint16_t)reg_a + (uint16_t)fetched + (uint16_t)GetFlag(C);
     SetFlag(C, temp > 255);
     SetFlag(Z, (temp & 0x00FF) == 0);
     SetFlag(V, (~((uint16_t)reg_a ^ (uint16_t)fetched) & ((uint16_t)reg_a ^ (uint16_t)temp)) & 0x0080);
@@ -247,7 +247,7 @@ inline uint8_t CPU::OP_CPX()
     SetFlag(C, reg_x >= fetched);
     SetFlag(Z, (temp & 0x00FF) == 0x0000);
     SetFlag(N, temp & 0x0080);
-    return 1;
+    return 0;
 }
 
 // Compare M and Y
@@ -258,7 +258,7 @@ inline uint8_t CPU::OP_CPY()
     SetFlag(C, reg_y >= fetched);
     SetFlag(Z, (temp & 0x00FF) == 0x0000);
     SetFlag(N, temp & 0x0080);
-    return 1;
+    return 0;
 }
 
 // Decerement M by One
@@ -356,7 +356,7 @@ inline uint8_t CPU::OP_LDA()
     reg_a = fetched;
     SetFlag(Z, reg_a == 0x00);
     SetFlag(N, reg_a & 0x80);
-    return 0;
+    return 1;
 }
 
 // Load X with M
@@ -366,7 +366,7 @@ inline uint8_t CPU::OP_LDX()
     reg_x = fetched;
     SetFlag(Z, reg_x == 0x00);
     SetFlag(N, reg_x & 0x80);
-    return 0;
+    return 1;
 }
 
 // Load Y with M
@@ -376,7 +376,7 @@ inline uint8_t CPU::OP_LDY()
     reg_y = fetched;
     SetFlag(Z, reg_y == 0x00);
     SetFlag(N, reg_y & 0x80);
-    return 0;
+    return 1;
 }
 
 // Shift Right One Bit (M or A)
@@ -531,8 +531,8 @@ inline uint8_t CPU::OP_SBC()
 {
     fetch();
     uint16_t value = ((uint16_t)fetched) ^ 0x00FF;
-    uint16_t temp = (uint16_t)reg_a + value + (uint16_t)GetFlag(C);
-    SetFlag(C, temp & 255);
+    temp = (uint16_t)reg_a + value + (uint16_t)GetFlag(C);
+    SetFlag(C, temp & 0xFF00);
     SetFlag(Z, ((temp & 0x00FF) == 0));
     SetFlag(V, (temp ^ (uint16_t)reg_a) & (temp ^ value) & 0x0080);
     SetFlag(N, temp & 0x0080);

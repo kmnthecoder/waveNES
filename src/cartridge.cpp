@@ -35,6 +35,7 @@ Cartridge::Cartridge(const std::string &file)
 
         // mapper id
         mapperID = ((header.mapper2 >> 4) << 4) | (header.mapper1 >> 4);
+        mirror = (header.mapper1 & 0x01) ? VERTICAL : HORIZONTAL;
 
         uint8_t fileType = 1;
 
@@ -49,7 +50,15 @@ Cartridge::Cartridge(const std::string &file)
             fileStream.read((char *)PRGMemory.data(), PRGMemory.size());
 
             CHRBanks = header.chr_chunks;
-            CHRMemory.resize(CHRBanks * 8192);
+
+            if (CHRBanks == 0)
+            {
+                CHRMemory.resize(8192);
+            }
+            else
+            {
+                CHRMemory.resize(CHRBanks * 8192);
+            }
             fileStream.read((char *)CHRMemory.data(), CHRMemory.size());
         }
 
@@ -128,4 +137,12 @@ bool Cartridge::ppuWrite(uint16_t addr, uint8_t data)
 bool Cartridge::ImageValid()
 {
     return bImageValid;
+}
+
+void Cartridge::reset()
+{
+    if (mapper != nullptr)
+    {
+        mapper->reset();
+    }
 }

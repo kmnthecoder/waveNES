@@ -1,5 +1,5 @@
 #include "ppu.hpp"
-#include "bus.hpp"
+//#include "bus.hpp"
 
 PPU::PPU()
 {
@@ -77,34 +77,61 @@ PPU::~PPU() {}
 uint8_t PPU::cpuRead(int16_t addr, bool readOnly)
 {
     uint8_t data = 0x00;
-
-    switch (addr)
+    if (readOnly)
     {
-    case 0x0000: // control
-        break;
-    case 0x0001: // mask
-        break;
-    case 0x0002: // status
-        status.vertical_blank = 1;
-        data = (status.reg & 0xE0) | (ppu_data_buffer & 0x1F);
-        status.vertical_blank = 0;
-        addr_latch = 0;
-        break;
-    case 0x0003: // oam address
-        break;
-    case 0x0004: // oam data
-        break;
-    case 0x0005: // scroll
-        break;
-    case 0x0006: // ppu address
-        break;
-    case 0x0007: // ppu data
-        data = ppu_data_buffer;
-        ppu_data_buffer = ppuRead(ppu_addr);
-
-        if (ppu_addr > 0x3f00)
+        switch (addr)
+        {
+        case 0x0000: // control
+            data = control.reg;
+            break;
+        case 0x0001: // mask
+            data = mask.reg;
+            break;
+        case 0x0002: // status
+            data = status.reg;
+            break;
+        case 0x0003: // oam address
+            break;
+        case 0x0004: // oam data
+            break;
+        case 0x0005: // scroll
+            break;
+        case 0x0006: // ppu address
+            break;
+        case 0x0007: // ppu data
+            break;
+        }
+    }
+    else
+    {
+        switch (addr)
+        {
+        case 0x0000: // control
+            break;
+        case 0x0001: // mask
+            break;
+        case 0x0002: // status
+            data = (status.reg & 0xE0) | (ppu_data_buffer & 0x1F);
+            status.vertical_blank = 0;
+            addr_latch = 0;
+            break;
+        case 0x0003: // oam address
+            break;
+        case 0x0004: // oam data
+            break;
+        case 0x0005: // scroll
+            break;
+        case 0x0006: // ppu address
+            break;
+        case 0x0007: // ppu data
             data = ppu_data_buffer;
-        break;
+            ppu_data_buffer = ppuRead(ppu_addr);
+
+            if (ppu_addr >= 0x3F00)
+                data = ppu_data_buffer;
+            ppu_addr += (control.increment_mode ? 32 : 1);
+            break;
+        }
     }
 
     return data;
@@ -130,7 +157,7 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     case 0x0006: // ppu address
         if (addr_latch == 0)
         {
-            ppu_addr = (ppu_addr & 0x00FF) | (data << 8);
+            ppu_addr = (uint16_t)((data & 0x3F) << 8) | (ppu_addr & 0x00FF);
             addr_latch = 1;
         }
         else
@@ -141,6 +168,7 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
         break;
     case 0x0007: // ppu data
         ppuWrite(ppu_addr, data);
+        ppu_addr += (control.increment_mode ? 32 : 1);
         break;
     }
 }
@@ -159,6 +187,46 @@ uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
     {
+        if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
+        {
+            // vertical
+            if (addr >= 0x0000 && addr <= 0x03FF)
+            {
+                data = nameTable[0][addr & 0x03FF];
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF)
+            {
+                data = nameTable[1][0x03FF];
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF)
+            {
+                data = nameTable[0][0x03FF];
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF)
+            {
+                data = nameTable[1][0x03FF];
+            }
+        }
+        else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
+        {
+            // horizontal
+            if (addr >= 0x0000 && addr <= 0x03FF)
+            {
+                data = nameTable[0][addr & 0x03FF];
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF)
+            {
+                data = nameTable[0][0x03FF];
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF)
+            {
+                data = nameTable[1][0x03FF];
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF)
+            {
+                data = nameTable[1][0x03FF];
+            }
+        }
     }
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
     {
@@ -190,6 +258,46 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
     {
+        if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
+        {
+            // vertical
+            if (addr >= 0x0000 && addr <= 0x03FF)
+            {
+                nameTable[0][addr & 0x03FF] = data;
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF)
+            {
+                nameTable[1][0x03FF] = data;
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF)
+            {
+                nameTable[0][0x03FF] = data;
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF)
+            {
+                nameTable[1][0x03FF] = data;
+            }
+        }
+        else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
+        {
+            // horizontal
+            if (addr >= 0x0000 && addr <= 0x03FF)
+            {
+                nameTable[0][addr & 0x03FF] = data;
+            }
+            if (addr >= 0x0400 && addr <= 0x07FF)
+            {
+                nameTable[0][0x03FF] = data;
+            }
+            if (addr >= 0x0800 && addr <= 0x0BFF)
+            {
+                nameTable[1][0x03FF] = data;
+            }
+            if (addr >= 0x0C00 && addr <= 0x0FFF)
+            {
+                nameTable[1][0x03FF] = data;
+            }
+        }
     }
     else if (addr >= 0x3F00 && addr <= 0x3FFF)
     {
@@ -213,7 +321,22 @@ void PPU::ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge)
 
 void PPU::tick()
 {
-    spriteScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
+
+    if (scanline == -1 && cycle == 1)
+    {
+        status.vertical_blank = 0;
+    }
+
+    if (scanline == 241 && cycle == 1)
+    {
+        status.vertical_blank = 1;
+        if (control.enable_nmi)
+        {
+            nmi = true;
+        }
+    }
+
+    //spriteScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
 
     cycle++;
     if (cycle >= 341)
@@ -248,8 +371,8 @@ olc::Sprite &PPU::GetPatternTable(uint8_t i, uint8_t palette)
 
             for (uint16_t row = 0; row < 8; row++)
             {
-                uint8_t tile_lsb = ppuRead(i * 0x1000 + offset + row + 0);
-                uint8_t tile_msb = ppuRead(i * 0x1000 + offset + row + 8);
+                uint8_t tile_lsb = ppuRead(i * 0x1000 + offset + row + 0x0000);
+                uint8_t tile_msb = ppuRead(i * 0x1000 + offset + row + 0x0008);
 
                 for (uint16_t col = 0; col < 8; col++)
                 {
@@ -257,9 +380,10 @@ olc::Sprite &PPU::GetPatternTable(uint8_t i, uint8_t palette)
                     tile_lsb >>= 1;
                     tile_msb >>= 1;
 
-                    spritePatternTable[i].SetPixel(tileX * 8 + (7 - col),
-                                                   tileY * 8 + row,
-                                                   GetColourFromPaletteRam(palette, pixel));
+                    spritePatternTable[i].SetPixel(
+                        tileX * 8 + (7 - col),
+                        tileY * 8 + row,
+                        GetColourFromPaletteRam(palette, pixel));
                 }
             }
         }
@@ -270,5 +394,29 @@ olc::Sprite &PPU::GetPatternTable(uint8_t i, uint8_t palette)
 
 olc::Pixel &PPU::GetColourFromPaletteRam(uint8_t palette, uint8_t pixel)
 {
-    return palScreen[ppuRead(0x3F00 + (palette << 2) + pixel)];
+    return palScreen[ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F];
+}
+
+void PPU::reset()
+{
+    //fine_x = 0x00;
+    addr_latch = 0x00;
+    ppu_data_buffer = 0x00;
+    scanline = 0;
+    cycle = 0;
+    /*
+	bg_next_tile_id = 0x00;
+	bg_next_tile_attrib = 0x00;
+	bg_next_tile_lsb = 0x00;
+	bg_next_tile_msb = 0x00;
+	bg_shifter_pattern_lo = 0x0000;
+	bg_shifter_pattern_hi = 0x0000;
+	bg_shifter_attrib_lo = 0x0000;
+	bg_shifter_attrib_hi = 0x0000;
+    */
+    status.reg = 0x00;
+    mask.reg = 0x00;
+    control.reg = 0x00;
+    ppu_addr = 0x0000;
+    //tram_addr.reg = 0x0000;
 }

@@ -3,7 +3,7 @@
 Bus::Bus()
 {
     cpu.BusConnection(this);
-    cpuRam.fill(0x00);
+    //cpuRam.fill(0x00);
 }
 
 Bus::~Bus() {}
@@ -48,8 +48,10 @@ void Bus::insertCartridge(const std::shared_ptr<Cartridge> &cartridge)
 }
 
 void Bus::reset()
-{
+{   
+    cartridge->reset();
     cpu.reset();
+    ppu.reset();
     clockCount = 0;
 }
 
@@ -60,5 +62,12 @@ void Bus::tick()
     {
         cpu.tick();
     }
+
+    if (ppu.nmi)
+    {
+        ppu.nmi = false;
+        cpu.NonMaskInterrupt();
+    }
+
     clockCount++;
 }

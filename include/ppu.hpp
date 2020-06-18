@@ -22,13 +22,18 @@ public:
 
     void ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge);
     void tick();
+    void reset();
+
+    bool nmi = false;
 
 private:
     std::shared_ptr<Cartridge> cartridge;
 
-    uint8_t nameTable[2][1024];
     uint8_t paletteTable[32];
     uint8_t patternTable[2][4096];
+
+public:
+    uint8_t nameTable[2][1024];
 
 private:
     olc::Pixel palScreen[0x40];

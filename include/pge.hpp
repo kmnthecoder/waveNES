@@ -172,11 +172,16 @@ public:
 
 	bool OnUserCreate(const char *filepath)
 	{
+		//filepath = "../nestest.nes";
+
 		std::cout << "--- Attempting to load: " << filepath << " ---" << std::endl;
 
 		cart = std::make_shared<Cartridge>(filepath);
+
 		if (!cart->ImageValid())
+		{
 			return false;
+		}
 
 		// Insert into NES
 		nes.insertCartridge(cart);
@@ -193,6 +198,13 @@ public:
 	bool OnUserUpdate(float fElapsedTime)
 	{
 		Clear(olc::VERY_DARK_MAGENTA);
+
+		if (GetKey(olc::Key::SPACE).bPressed)
+			bEmulationRun = !bEmulationRun;
+		if (GetKey(olc::Key::R).bPressed)
+			nes.reset();
+		if (GetKey(olc::Key::P).bPressed)
+			(++selectedPalette) &= 0x07;
 
 		if (bEmulationRun)
 		{
@@ -245,13 +257,6 @@ public:
 			}
 		}
 
-		if (GetKey(olc::Key::SPACE).bPressed)
-			bEmulationRun = !bEmulationRun;
-		if (GetKey(olc::Key::R).bPressed)
-			nes.reset();
-		if (GetKey(olc::Key::P).bPressed)
-			(++selectedPalette) &= 0x07;
-
 		DrawCpu(516, 2);
 		DrawCode(516, 72, 24);
 
@@ -269,6 +274,15 @@ public:
 		DrawSprite(648, 348, &nes.ppu.GetPatternTable(1, selectedPalette));
 
 		DrawSprite(0, 0, &nes.ppu.GetScreen(), 2);
+
+		for (uint8_t y = 0; y < 30; y++)
+		{
+			for (uint8_t x = 0; x < 32; x++)
+			{
+				DrawString(x * 16, y * 16, hex((uint32_t)nes.ppu.nameTable[0][y * 32 + x], 2));
+			}
+		}
+
 		return true;
 	}
 };
