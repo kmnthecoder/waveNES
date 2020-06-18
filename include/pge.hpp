@@ -275,11 +275,18 @@ public:
 
 		DrawSprite(0, 0, &nes.ppu.GetScreen(), 2);
 
+		olc::Sprite &s = nes.ppu.GetPatternTable(1, selectedPalette);  // 1/2
+
 		for (uint8_t y = 0; y < 30; y++)
 		{
 			for (uint8_t x = 0; x < 32; x++)
 			{
-				DrawString(x * 16, y * 16, hex((uint32_t)nes.ppu.nameTable[0][y * 32 + x], 2));
+				//DrawString(x * 16, y * 16, hex((uint32_t)nes.ppu.nameTable[0][y * 32 + x], 2));
+
+				uint8_t id = (uint32_t)nes.ppu.nameTable[0][y * 32 + x];
+				//DrawPartialSprite(x * 16, y * 16, &nes.ppu.GetPatternTable(0, selectedPalette), // or 1
+				DrawPartialSprite(x * 16, y * 16, &s,
+								  (id & 0x0F) << 3, ((id >> 4) & 0x0F) << 3, 8, 8, 2);
 			}
 		}
 

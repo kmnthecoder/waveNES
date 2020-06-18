@@ -125,11 +125,11 @@ uint8_t PPU::cpuRead(int16_t addr, bool readOnly)
             break;
         case 0x0007: // ppu data
             data = ppu_data_buffer;
-            ppu_data_buffer = ppuRead(ppu_addr);
+            ppu_data_buffer = ppuRead(vram_addr.reg);
 
-            if (ppu_addr >= 0x3F00)
+            if (vram_addr.reg >= 0x3F00)
                 data = ppu_data_buffer;
-            ppu_addr += (control.increment_mode ? 32 : 1);
+            vram_addr.reg += (control.increment_mode ? 32 : 1);
             break;
         }
     }
@@ -142,6 +142,8 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     {
     case 0x0000: // control
         control.reg = data;
+        tram_addr.nametable_x = control.nametable_x;
+        tram_addr.nametable_y = control.nametable_y;
         break;
     case 0x0001: // mask
         mask.reg = data;
@@ -153,22 +155,35 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     case 0x0004: // oam data
         break;
     case 0x0005: // scroll
-        break;
-    case 0x0006: // ppu address
         if (addr_latch == 0)
         {
-            ppu_addr = (uint16_t)((data & 0x3F) << 8) | (ppu_addr & 0x00FF);
+            fine_x = data & 0x07;
+            tram_addr.coarse_x = data >> 3;
             addr_latch = 1;
         }
         else
         {
-            ppu_addr = (ppu_addr & 0xFF00) | data;
+            tram_addr.fine_y = data & 0x07;
+            tram_addr.coarse_y = data >> 3;
+            addr_latch = 0;
+        }
+        break;
+    case 0x0006: // ppu address
+        if (addr_latch == 0)
+        {
+            tram_addr.reg = (uint16_t)((data & 0x3F) << 8) | (tram_addr.reg & 0x00FF);
+            addr_latch = 1;
+        }
+        else
+        {
+            tram_addr.reg = (tram_addr.reg & 0xFF00) | data;
+            vram_addr = tram_addr;
             addr_latch = 0;
         }
         break;
     case 0x0007: // ppu data
-        ppuWrite(ppu_addr, data);
-        ppu_addr += (control.increment_mode ? 32 : 1);
+        ppuWrite(vram_addr.reg, data);
+        vram_addr.reg += (control.increment_mode ? 32 : 1);
         break;
     }
 }
@@ -322,9 +337,154 @@ void PPU::ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge)
 void PPU::tick()
 {
 
-    if (scanline == -1 && cycle == 1)
+    auto IncrementScrollX = [&]() {
+        if (mask.render_bg || mask.render_sprites)
+        {
+            if (vram_addr.coarse_x == 31)
+            {
+                vram_addr.coarse_x = 0;
+                vram_addr.nametable_x = ~vram_addr.nametable_x;
+            }
+        }
+        else
+        {
+            vram_addr.coarse_x++;
+        }
+    };
+
+    auto IncrementScrollY = [&]() {
+        if (mask.render_bg || mask.render_sprites)
+        {
+            if (vram_addr.fine_y < 7)
+            {
+                vram_addr.fine_y++;
+            }
+            else
+            {
+                vram_addr.fine_y = 0;
+                if (vram_addr.coarse_y == 29)
+                {
+                    vram_addr.coarse_y = 0;
+                    vram_addr.nametable_y = ~vram_addr.nametable_y;
+                }
+                else if (vram_addr.coarse_y == 31)
+                {
+                    vram_addr.coarse_y = 0;
+                }
+                else
+                {
+                    vram_addr.coarse_y++;
+                }
+            }
+        }
+    };
+
+    auto TransferAddressX = [&]() {
+        if (mask.render_bg || mask.render_sprites)
+        {
+            vram_addr.nametable_x = tram_addr.nametable_x;
+            vram_addr.coarse_x = tram_addr.coarse_x;
+        }
+    };
+
+    auto TransferAddressY = [&]() {
+        if (mask.render_bg || mask.render_sprites)
+        {
+            vram_addr.fine_y = tram_addr.fine_y;
+            vram_addr.nametable_y = tram_addr.nametable_y;
+            vram_addr.coarse_y = tram_addr.coarse_y;
+        }
+    };
+
+    auto LoadBackgroundShifters = [&]() {
+        bg_shifter_pattern_lo = (bg_shifter_pattern_lo & 0xFF00) | bg_next_tile_lsb;
+        bg_shifter_pattern_hi = (bg_shifter_pattern_hi & 0xFF00) | bg_next_tile_msb;
+
+        bg_shifter_attrib_lo = (bg_shifter_attrib_lo & 0xFF00) | ((bg_next_tile_attrib & 0b01) ? 0xFF : 0x00);
+        bg_shifter_attrib_hi = (bg_shifter_attrib_hi & 0xFF00) | ((bg_next_tile_attrib & 0b10) ? 0xFF : 0x00);
+    };
+
+    auto UpdateShifters = [&]() {
+        if (mask.render_bg)
+        {
+            // Shifting background tile pattern row
+            bg_shifter_pattern_lo <<= 1;
+            bg_shifter_pattern_hi <<= 1;
+
+            // Shifting palette attributes by 1
+            bg_shifter_attrib_lo <<= 1;
+            bg_shifter_attrib_hi <<= 1;
+        }
+    };
+
+    if (scanline >= -1 && scanline < 240)
     {
-        status.vertical_blank = 0;
+        if (scanline == -1 && cycle == 1)
+        {
+            status.vertical_blank = 0;
+        }
+
+        if ((cycle >= 2 && cycle < 258) || (cycle >= 321 && cycle < 338))
+        {
+            UpdateShifters();
+
+            switch ((cycle - 1) % 8)
+            {
+            case 0:
+                LoadBackgroundShifters();
+                bg_next_tile_id = ppuRead(0x2000 | (vram_addr.reg & 0x0FFF));
+                break;
+            case 2:
+                bg_next_tile_attrib = ppuRead(
+                    0x23C0 |
+                    (vram_addr.nametable_y << 11) |
+                    (vram_addr.nametable_x << 10) |
+                    ((vram_addr.coarse_y >> 2) << 3) |
+                    (vram_addr.coarse_x >> 2));
+                if (vram_addr.coarse_y & 0x02)
+                {
+                    bg_next_tile_attrib >>= 4;
+                }
+                if (vram_addr.coarse_x & 0x02)
+                {
+                    bg_next_tile_attrib >>= 2;
+                }
+                bg_next_tile_attrib &= 0x03;
+                break;
+            case 4:
+                bg_next_tile_lsb = ppuRead((control.pattern_background << 12) +
+                                           ((uint16_t)bg_next_tile_id << 4) +
+                                           (vram_addr.fine_y + 0));
+                break;
+            case 6:
+                bg_next_tile_lsb = ppuRead((control.pattern_background << 12) +
+                                           ((uint16_t)bg_next_tile_id << 4) +
+                                           (vram_addr.fine_y + 8));
+                break;
+            case 7:
+                IncrementScrollX();
+                break;
+            }
+        }
+
+        if (cycle == 256)
+        {
+            IncrementScrollY();
+        }
+
+        if (cycle == 257)
+        {
+            TransferAddressX();
+        }
+
+        if (scanline == -1 && cycle >= 280 && cycle < 305)
+        {
+            TransferAddressY();
+        }
+    }
+
+    if (scanline == 240)
+    {
     }
 
     if (scanline == 241 && cycle == 1)
@@ -336,7 +496,27 @@ void PPU::tick()
         }
     }
 
+    uint8_t bg_pixel = 0x00;
+    uint8_t bg_palette = 0x00;
+
+    if (mask.render_bg)
+    {
+        uint16_t bit_mux = 0x8000 >> fine_x;
+
+        uint8_t p0_pixel = (bg_shifter_pattern_lo & bit_mux) > 0;
+		uint8_t p1_pixel = (bg_shifter_pattern_hi & bit_mux) > 0;
+
+        bg_pixel = (p1_pixel << 1) | p0_pixel;
+
+        uint8_t bg_pal0 = (bg_shifter_attrib_lo & bit_mux) > 0;
+		uint8_t bg_pal1 = (bg_shifter_attrib_hi & bit_mux) > 0;
+		bg_palette = (bg_pal1 << 1) | bg_pal0;
+    }
+
     //spriteScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
+
+    spriteScreen.SetPixel(cycle - 1, scanline, GetColourFromPaletteRam(bg_palette, bg_pixel));
+
 
     cycle++;
     if (cycle >= 341)
@@ -417,6 +597,6 @@ void PPU::reset()
     status.reg = 0x00;
     mask.reg = 0x00;
     control.reg = 0x00;
-    ppu_addr = 0x0000;
+    vram_addr.reg = 0x0000;
     //tram_addr.reg = 0x0000;
 }
