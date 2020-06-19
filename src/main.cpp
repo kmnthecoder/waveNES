@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
 	const char *file = argv[1];
 
-	Demo_olc6502 demo;
+	Demo demo;
 	demo.Construct(780, 480, 2, 2, file);
 	demo.Start();
 

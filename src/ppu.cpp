@@ -188,7 +188,7 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     }
 }
 
-uint8_t PPU::ppuRead(uint16_t addr, bool readOnly)
+uint8_t PPU::ppuRead(uint16_t addr, bool rdonly)
 {
     uint8_t data = 0x00;
     addr &= 0x3FFF;
@@ -198,6 +198,8 @@ uint8_t PPU::ppuRead(uint16_t addr, bool readOnly)
     }
     else if (addr >= 0x0000 && addr <= 0x1FFF)
     {
+        // If the cartridge cant map the address, have
+        // a physical location ready here
         data = patternTable[(addr & 0x1000) >> 12][addr & 0x0FFF];
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
@@ -206,42 +208,42 @@ uint8_t PPU::ppuRead(uint16_t addr, bool readOnly)
 
         if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
         {
-            // vertical
+            // Vertical
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 data = nameTable[0][addr & 0x03FF];
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                data = nameTable[1][0x03FF & 0x03FF];
+                data = nameTable[1][addr & 0x03FF];
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                data = nameTable[0][0x03FF & 0x03FF];
+                data = nameTable[0][addr & 0x03FF];
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                data = nameTable[1][0x03FF & 0x03FF];
+                data = nameTable[1][addr & 0x03FF];
             }
         }
         else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
         {
-            // horizontal
+            // Horizontal
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 data = nameTable[0][addr & 0x03FF];
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                data = nameTable[0][0x03FF & 0x03FF];
+                data = nameTable[0][addr & 0x03FF];
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                data = nameTable[1][0x03FF & 0x03FF];
+                data = nameTable[1][addr & 0x03FF];
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                data = nameTable[1][0x03FF & 0x03FF];
+                data = nameTable[1][addr & 0x03FF];
             }
         }
     }
@@ -278,42 +280,42 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
         addr &= 0x0FFF;
         if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
         {
-            // vertical
+            // Vertical
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 nameTable[0][addr & 0x03FF] = data;
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                nameTable[1][0x03FF & 0x03FF] = data;
+                nameTable[1][addr & 0x03FF] = data;
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                nameTable[0][0x03FF & 0x03FF] = data;
+                nameTable[0][addr & 0x03FF] = data;
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                nameTable[1][0x03FF & 0x03FF] = data;
+                nameTable[1][addr & 0x03FF] = data;
             }
         }
         else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
         {
-            // horizontal
+            // Horizontal
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 nameTable[0][addr & 0x03FF] = data;
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                nameTable[0][0x03FF & 0x03FF] = data;
+                nameTable[0][addr & 0x03FF] = data;
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                nameTable[1][0x03FF & 0x03FF] = data;
+                nameTable[1][addr & 0x03FF] = data;
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                nameTable[1][0x03FF & 0x03FF] = data;
+                nameTable[1][addr & 0x03FF] = data;
             }
         }
     }
@@ -348,10 +350,10 @@ void PPU::tick()
                 vram_addr.coarse_x = 0;
                 vram_addr.nametable_x = ~vram_addr.nametable_x;
             }
-        }
-        else
-        {
-            vram_addr.coarse_x++;
+            else
+            {
+                vram_addr.coarse_x++;
+            }
         }
     };
 
@@ -466,7 +468,7 @@ void PPU::tick()
                                            (vram_addr.fine_y) + 0);
                 break;
             case 6:
-                bg_next_tile_lsb = ppuRead((control.pattern_background << 12) +
+                bg_next_tile_msb = ppuRead((control.pattern_background << 12) +
                                            ((uint16_t)bg_next_tile_id << 4) +
                                            (vram_addr.fine_y) + 8);
                 break;
