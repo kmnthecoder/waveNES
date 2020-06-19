@@ -17,7 +17,7 @@ inline uint8_t CPU::OP_ADC()
 inline uint8_t CPU::OP_AND()
 {
     fetch();
-    reg_a &= fetched;
+    reg_a = reg_a & fetched;
     SetFlag(Z, reg_a == 0x00);
     SetFlag(N, reg_a & 0x80);
     return 1;
@@ -29,8 +29,8 @@ inline uint8_t CPU::OP_ASL()
     fetch();
     temp = (uint16_t)fetched << 1;
     SetFlag(C, (temp & 0xFF00) > 0);
-    SetFlag(N, temp & 0x80);
     SetFlag(Z, (temp & 0x00FF) == 0x00);
+    SetFlag(N, temp & 0x80);
     if (LookupTable[opcode].addrmode == &CPU::ADDR_IMP)
     {
         reg_a = temp & 0x00FF;
@@ -94,9 +94,9 @@ inline uint8_t CPU::OP_BEQ()
 inline uint8_t CPU::OP_BIT()
 {
     fetch();
-    temp = fetched & reg_a;
-    SetFlag(N, fetched & (1 << 7));
+    temp = reg_a & fetched;
     SetFlag(Z, (temp & 0x00FF) == 0x00);
+    SetFlag(N, fetched & (1 << 7));
     SetFlag(V, fetched & (1 << 6));
     return 0;
 }
@@ -294,7 +294,7 @@ inline uint8_t CPU::OP_DEY()
 inline uint8_t CPU::OP_EOR()
 {
     fetch();
-    reg_a ^= fetched;
+    reg_a = reg_a ^ fetched;
     SetFlag(Z, reg_a == 0x00);
     SetFlag(N, reg_a & 0x80);
     return 1;
@@ -384,9 +384,9 @@ inline uint8_t CPU::OP_LSR()
 {
     fetch();
     SetFlag(C, fetched & 0x0001);
-    temp = fetched >> 1;
-    SetFlag(N, temp & 0x0080);
+    temp = fetched >> 1;    
     SetFlag(Z, (temp & 0x00FF) == 0x0000);
+    SetFlag(N, temp & 0x0080);
     if (LookupTable[opcode].addrmode == &CPU::ADDR_IMP)
     {
         reg_a = temp & 0x00FF;
@@ -419,7 +419,7 @@ inline uint8_t CPU::OP_NOP()
 inline uint8_t CPU::OP_ORA()
 {
     fetch();
-    reg_a |= fetched;
+    reg_a = reg_a | fetched;
     SetFlag(Z, reg_a == 0x00);
     SetFlag(N, reg_a & 0x80);
     return 1;
@@ -485,7 +485,7 @@ inline uint8_t CPU::OP_ROL()
 inline uint8_t CPU::OP_ROR()
 {
     fetch();
-    temp = (uint16_t)GetFlag(C) << 7 | (fetched >> 1);
+    temp = (uint16_t)(GetFlag(C) << 7) | (fetched >> 1);
     SetFlag(C, fetched & 0x01);
     SetFlag(Z, (temp & 0x00FF) == 0x00);
     SetFlag(N, temp & 0x0080);

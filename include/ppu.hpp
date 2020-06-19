@@ -1,9 +1,9 @@
 #ifndef PPU_HPP
 #define PPU_HPP
 
-#include "cartridge.hpp"
-
 #include "olcPixelGameEngine.h"
+
+#include "cartridge.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -14,10 +14,10 @@ public:
     PPU();
     ~PPU();
 
-    uint8_t cpuRead(int16_t addr, bool readOnly = false);
+    uint8_t cpuRead(uint16_t addr, bool readOnly = false);
     void cpuWrite(uint16_t addr, uint8_t data);
 
-    uint8_t ppuRead(int16_t addr, bool readOnly = false);
+    uint8_t ppuRead(uint16_t addr, bool readOnly = false);
     void ppuWrite(uint16_t addr, uint8_t data);
 
     void ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge);
@@ -31,8 +31,6 @@ private:
 
     uint8_t paletteTable[32];
     uint8_t patternTable[2][4096];
-
-public:
     uint8_t nameTable[2][1024];
 
 private:
@@ -45,13 +43,11 @@ public:
     olc::Sprite &GetScreen();
     olc::Sprite &GetNameTable(uint8_t i);
     olc::Sprite &GetPatternTable(uint8_t i, uint8_t palette);
+
     olc::Pixel &GetColourFromPaletteRam(uint8_t palette, uint8_t pixel);
     bool frameComplete = false;
 
 private:
-    int16_t scanline = 0;
-    int16_t cycle = 0;
-
     union {
         struct
         {
@@ -66,7 +62,7 @@ private:
     union {
         struct
         {
-            uint8_t grayscake : 1;
+            uint8_t grayscale : 1;
             uint8_t render_bg_left : 1;
             uint8_t render_sprites_left : 1;
             uint8_t render_bg : 1;
@@ -93,9 +89,6 @@ private:
         uint8_t reg;
     } control;
 
-    uint8_t addr_latch = 0x00;
-    uint8_t ppu_data_buffer = 0x00;
-
     union loopy_register {
         struct
         {
@@ -108,6 +101,12 @@ private:
         };
         uint16_t reg = 0x0000;
     };
+
+    int16_t scanline = 0;
+    int16_t cycle = 0;
+
+    uint8_t addr_latch = 0x00;
+    uint8_t ppu_data_buffer = 0x00;
 
     loopy_register vram_addr;
     loopy_register tram_addr;

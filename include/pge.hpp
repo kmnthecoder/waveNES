@@ -275,6 +275,7 @@ public:
 
 		DrawSprite(0, 0, &nes.ppu.GetScreen(), 2);
 
+		/*
 		olc::Sprite &s = nes.ppu.GetPatternTable(1, selectedPalette);  // 1/2
 
 		for (uint8_t y = 0; y < 30; y++)
@@ -289,6 +290,7 @@ public:
 								  (id & 0x0F) << 3, ((id >> 4) & 0x0F) << 3, 8, 8, 2);
 			}
 		}
+		*/
 
 		return true;
 	}

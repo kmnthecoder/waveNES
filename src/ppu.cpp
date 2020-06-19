@@ -74,7 +74,7 @@ PPU::PPU()
 
 PPU::~PPU() {}
 
-uint8_t PPU::cpuRead(int16_t addr, bool readOnly)
+uint8_t PPU::cpuRead(uint16_t addr, bool readOnly)
 {
     uint8_t data = 0x00;
     if (readOnly)
@@ -188,7 +188,7 @@ void PPU::cpuWrite(uint16_t addr, uint8_t data)
     }
 }
 
-uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
+uint8_t PPU::ppuRead(uint16_t addr, bool readOnly)
 {
     uint8_t data = 0x00;
     addr &= 0x3FFF;
@@ -202,6 +202,8 @@ uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
     {
+        addr &= 0x0FFF;
+
         if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
         {
             // vertical
@@ -211,15 +213,15 @@ uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                data = nameTable[1][0x03FF];
+                data = nameTable[1][0x03FF & 0x03FF];
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                data = nameTable[0][0x03FF];
+                data = nameTable[0][0x03FF & 0x03FF];
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                data = nameTable[1][0x03FF];
+                data = nameTable[1][0x03FF & 0x03FF];
             }
         }
         else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
@@ -231,15 +233,15 @@ uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                data = nameTable[0][0x03FF];
+                data = nameTable[0][0x03FF & 0x03FF];
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                data = nameTable[1][0x03FF];
+                data = nameTable[1][0x03FF & 0x03FF];
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                data = nameTable[1][0x03FF];
+                data = nameTable[1][0x03FF & 0x03FF];
             }
         }
     }
@@ -254,7 +256,7 @@ uint8_t PPU::ppuRead(int16_t addr, bool readOnly)
             addr = 0x0008;
         if (addr == 0x001C)
             addr = 0x000C;
-        data = paletteTable[addr];
+        data = paletteTable[addr] & (mask.grayscale ? 0x30 : 0x3F);
     }
 
     return data;
@@ -273,6 +275,7 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
     {
+        addr &= 0x0FFF;
         if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
         {
             // vertical
@@ -282,15 +285,15 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                nameTable[1][0x03FF] = data;
+                nameTable[1][0x03FF & 0x03FF] = data;
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                nameTable[0][0x03FF] = data;
+                nameTable[0][0x03FF & 0x03FF] = data;
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                nameTable[1][0x03FF] = data;
+                nameTable[1][0x03FF & 0x03FF] = data;
             }
         }
         else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
@@ -302,15 +305,15 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
             }
             if (addr >= 0x0400 && addr <= 0x07FF)
             {
-                nameTable[0][0x03FF] = data;
+                nameTable[0][0x03FF & 0x03FF] = data;
             }
             if (addr >= 0x0800 && addr <= 0x0BFF)
             {
-                nameTable[1][0x03FF] = data;
+                nameTable[1][0x03FF & 0x03FF] = data;
             }
             if (addr >= 0x0C00 && addr <= 0x0FFF)
             {
-                nameTable[1][0x03FF] = data;
+                nameTable[1][0x03FF & 0x03FF] = data;
             }
         }
     }
@@ -419,6 +422,12 @@ void PPU::tick()
 
     if (scanline >= -1 && scanline < 240)
     {
+
+        if (scanline == 0 && cycle == 0)
+        {
+            cycle = 1;
+        }
+
         if (scanline == -1 && cycle == 1)
         {
             status.vertical_blank = 0;
@@ -454,12 +463,12 @@ void PPU::tick()
             case 4:
                 bg_next_tile_lsb = ppuRead((control.pattern_background << 12) +
                                            ((uint16_t)bg_next_tile_id << 4) +
-                                           (vram_addr.fine_y + 0));
+                                           (vram_addr.fine_y) + 0);
                 break;
             case 6:
                 bg_next_tile_lsb = ppuRead((control.pattern_background << 12) +
                                            ((uint16_t)bg_next_tile_id << 4) +
-                                           (vram_addr.fine_y + 8));
+                                           (vram_addr.fine_y) + 8);
                 break;
             case 7:
                 IncrementScrollX();
@@ -474,7 +483,13 @@ void PPU::tick()
 
         if (cycle == 257)
         {
+            LoadBackgroundShifters();
             TransferAddressX();
+        }
+
+        if (cycle == 338 || cycle == 340)
+        {
+            bg_next_tile_id = ppuRead(0x2000 | (vram_addr.reg & 0x0FFF));
         }
 
         if (scanline == -1 && cycle >= 280 && cycle < 305)
@@ -487,12 +502,15 @@ void PPU::tick()
     {
     }
 
-    if (scanline == 241 && cycle == 1)
+    if (scanline >= 241 && scanline < 261)
     {
-        status.vertical_blank = 1;
-        if (control.enable_nmi)
+        if (scanline == 241 && cycle == 1)
         {
-            nmi = true;
+            status.vertical_blank = 1;
+            if (control.enable_nmi)
+            {
+                nmi = true;
+            }
         }
     }
 
@@ -504,19 +522,18 @@ void PPU::tick()
         uint16_t bit_mux = 0x8000 >> fine_x;
 
         uint8_t p0_pixel = (bg_shifter_pattern_lo & bit_mux) > 0;
-		uint8_t p1_pixel = (bg_shifter_pattern_hi & bit_mux) > 0;
+        uint8_t p1_pixel = (bg_shifter_pattern_hi & bit_mux) > 0;
 
         bg_pixel = (p1_pixel << 1) | p0_pixel;
 
         uint8_t bg_pal0 = (bg_shifter_attrib_lo & bit_mux) > 0;
-		uint8_t bg_pal1 = (bg_shifter_attrib_hi & bit_mux) > 0;
-		bg_palette = (bg_pal1 << 1) | bg_pal0;
+        uint8_t bg_pal1 = (bg_shifter_attrib_hi & bit_mux) > 0;
+        bg_palette = (bg_pal1 << 1) | bg_pal0;
     }
 
     //spriteScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
 
     spriteScreen.SetPixel(cycle - 1, scanline, GetColourFromPaletteRam(bg_palette, bg_pixel));
-
 
     cycle++;
     if (cycle >= 341)
@@ -579,24 +596,22 @@ olc::Pixel &PPU::GetColourFromPaletteRam(uint8_t palette, uint8_t pixel)
 
 void PPU::reset()
 {
-    //fine_x = 0x00;
+    fine_x = 0x00;
     addr_latch = 0x00;
     ppu_data_buffer = 0x00;
     scanline = 0;
     cycle = 0;
-    /*
-	bg_next_tile_id = 0x00;
-	bg_next_tile_attrib = 0x00;
-	bg_next_tile_lsb = 0x00;
-	bg_next_tile_msb = 0x00;
-	bg_shifter_pattern_lo = 0x0000;
-	bg_shifter_pattern_hi = 0x0000;
-	bg_shifter_attrib_lo = 0x0000;
-	bg_shifter_attrib_hi = 0x0000;
-    */
+    bg_next_tile_id = 0x00;
+    bg_next_tile_attrib = 0x00;
+    bg_next_tile_lsb = 0x00;
+    bg_next_tile_msb = 0x00;
+    bg_shifter_pattern_lo = 0x0000;
+    bg_shifter_pattern_hi = 0x0000;
+    bg_shifter_attrib_lo = 0x0000;
+    bg_shifter_attrib_hi = 0x0000;
     status.reg = 0x00;
     mask.reg = 0x00;
     control.reg = 0x00;
     vram_addr.reg = 0x0000;
-    //tram_addr.reg = 0x0000;
+    tram_addr.reg = 0x0000;
 }

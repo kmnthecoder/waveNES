@@ -21,7 +21,7 @@ public:
     PPU ppu;
     std::shared_ptr<Cartridge> cartridge;
 
-    uint8_t cpuRead(int16_t addr, bool readOnly = false);
+    uint8_t cpuRead(uint16_t addr, bool readOnly = false);
     void cpuWrite(uint16_t addr, uint8_t data);
 
     void insertCartridge(const std::shared_ptr<Cartridge> &cartridge);

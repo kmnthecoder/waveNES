@@ -8,7 +8,7 @@ Bus::Bus()
 
 Bus::~Bus() {}
 
-uint8_t Bus::cpuRead(int16_t addr, bool readOnly)
+uint8_t Bus::cpuRead(uint16_t addr, bool readOnly)
 {
     uint8_t data = 0x00;
 

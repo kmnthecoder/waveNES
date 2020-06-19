@@ -80,7 +80,7 @@ Cartridge::Cartridge(const std::string &file)
 
 Cartridge::~Cartridge() {}
 
-bool Cartridge::cpuRead(int16_t addr, uint8_t &data)
+bool Cartridge::cpuRead(uint16_t addr, uint8_t &data)
 {
     uint32_t mapped_addr = 0;
     if (mapper->cpuMapRead(addr, mapped_addr))
@@ -96,7 +96,7 @@ bool Cartridge::cpuRead(int16_t addr, uint8_t &data)
 bool Cartridge::cpuWrite(uint16_t addr, uint8_t data)
 {
     uint32_t mapped_addr = 0;
-    if (mapper->cpuMapWrite(addr, mapped_addr))
+    if (mapper->cpuMapWrite(addr, mapped_addr, data))
     {
         PRGMemory[mapped_addr] = data;
         return true;
@@ -107,7 +107,7 @@ bool Cartridge::cpuWrite(uint16_t addr, uint8_t data)
     }
 }
 
-bool Cartridge::ppuRead(int16_t addr, uint8_t &data)
+bool Cartridge::ppuRead(uint16_t addr, uint8_t &data)
 {
     uint32_t mapped_addr = 0;
     if (mapper->cpuMapRead(addr, mapped_addr))

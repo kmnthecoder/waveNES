@@ -268,7 +268,7 @@ CPU::CPU()
 
 CPU::~CPU() {}
 
-uint8_t CPU::read(int16_t addr)
+uint8_t CPU::read(uint16_t addr)
 {
     return bus->cpuRead(addr, false);
 }
@@ -471,8 +471,6 @@ uint8_t CPU::ADDR_ABX()
     {
         return 0;
     }
-
-    return 0;
 }
 
 uint8_t CPU::ADDR_ABY()
@@ -493,8 +491,6 @@ uint8_t CPU::ADDR_ABY()
     {
         return 0;
     }
-
-    return 0;
 }
 
 uint8_t CPU::ADDR_IND()
