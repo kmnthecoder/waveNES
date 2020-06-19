@@ -1,12 +1,14 @@
 #ifndef CARTRIDGE_HPP
 #define CARTRIDGE_HPP
 
-#include "mapper0.hpp"
-
 #include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
+#include <fstream>
+
+#include "mapper0.hpp"
+
 
 class Cartridge
 {

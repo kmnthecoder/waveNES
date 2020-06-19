@@ -1,7 +1,4 @@
 #include "cartridge.hpp"
-#include "bus.hpp"
-
-#include <fstream>
 
 Cartridge::Cartridge(const std::string &file)
 {
@@ -25,7 +22,7 @@ Cartridge::Cartridge(const std::string &file)
     fileStream.open(file, std::ifstream::binary);
     if (fileStream.is_open())
     {
-        // read file headewr
+        // read file header
         fileStream.read((char *)&header, sizeof(HeaderStruct));
 
         if (header.mapper1 & 0x04)
@@ -110,7 +107,7 @@ bool Cartridge::cpuWrite(uint16_t addr, uint8_t data)
 bool Cartridge::ppuRead(uint16_t addr, uint8_t &data)
 {
     uint32_t mapped_addr = 0;
-    if (mapper->cpuMapRead(addr, mapped_addr))
+    if (mapper->ppuMapRead(addr, mapped_addr))
     {
         data = CHRMemory[mapped_addr];
         return true;
@@ -123,7 +120,7 @@ bool Cartridge::ppuRead(uint16_t addr, uint8_t &data)
 bool Cartridge::ppuWrite(uint16_t addr, uint8_t data)
 {
     uint32_t mapped_addr = 0;
-    if (mapper->cpuMapRead(addr, mapped_addr))
+    if (mapper->ppuMapRead(addr, mapped_addr))
     {
         CHRMemory[mapped_addr] = data;
         return true;
