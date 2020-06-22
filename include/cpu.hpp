@@ -17,6 +17,7 @@ public:
 
     void BusConnection(Bus *b) { bus = b; }
 
+    // status registers
     enum PFLAGS
     {
         C = (1 << 0), // carry
@@ -37,9 +38,9 @@ public:
     uint8_t sp = 0x00;     // stack pointer
     uint16_t pc = 0x0000;  // program counter
 
-    void tick();  // one tick of CPU
-    void reset(); // resets CPU into known state
-    void InterruptReq();
+    void tick();             // one tick of CPU
+    void reset();            // resets CPU into known state
+    void InterruptReq();     // executes instruction at specific location
     void NonMaskInterrupt(); // same as interrupt request, but can't be disabled
 
     // utility function for debugging
@@ -56,25 +57,27 @@ private:
     uint8_t GetFlag(PFLAGS f);
     void SetFlag(PFLAGS f, bool v);
 
+    // struct to store opcode translation table. 256 different instructions
+    // these are stored in numerical order; no decoding required
     struct INSTRUCTION
     {
-        std::string name;
-        uint8_t (CPU::*execute)(void) = nullptr;
-        uint8_t (CPU::*addrmode)(void) = nullptr;
-        uint8_t cycles = 0;
+        std::string name; // pneumonic - text representation of instruction
+        uint8_t (CPU::*execute)(void) = nullptr; // function pointer to implementation of opcode
+        uint8_t (CPU::*addrmode)(void) = nullptr; // function pointer to implementation of addr mode
+        uint8_t cycles = 0; // # of clocks CPU uses to perform instruction
     };
 
     std::vector<INSTRUCTION> LookupTable; // table for opcodes/address modes
 
     uint8_t fetch();
 
-    uint8_t fetched = 0x00;
-    uint16_t temp = 0x0000;
-    uint16_t addr_abs = 0x0000;
-    uint16_t addr_rel = 0x00;
-    uint8_t opcode = 0x00;
-    uint8_t cycles = 0;
-    uint32_t clock_count = 0;
+    uint8_t fetched = 0x00; // working input value to the ALU
+    uint16_t temp = 0x0000; // convenience variable used everywhere
+    uint16_t addr_abs = 0x0000; // used memory addresses
+    uint16_t addr_rel = 0x00; // used to store absolute address after a branch
+    uint8_t opcode = 0x00; // instruction byte
+    uint8_t cycles = 0; // # of cycles the isntruction has remaining
+    uint32_t clock_count = 0; // global count of clocks
 
     // addressing modes
     uint8_t ADDR_IMP(); // implied
@@ -150,6 +153,7 @@ private:
     inline uint8_t OP_UOF(); // unofficial
 
 public:
+    // produces a map of strings with keys equivalent to intruction start locations in memory
     std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop);
 };
 

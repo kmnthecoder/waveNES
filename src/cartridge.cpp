@@ -34,6 +34,7 @@ Cartridge::Cartridge(const std::string &file)
         mapperID = ((header.mapper2 >> 4) << 4) | (header.mapper1 >> 4);
         mirror = (header.mapper1 & 0x01) ? VERTICAL : HORIZONTAL;
 
+        // file format
         uint8_t fileType = 1;
 
         if (fileType == 0)
@@ -50,10 +51,12 @@ Cartridge::Cartridge(const std::string &file)
 
             if (CHRBanks == 0)
             {
+                // create CHR ram
                 CHRMemory.resize(8192);
             }
             else
             {
+                // allocate for ROM
                 CHRMemory.resize(CHRBanks * 8192);
             }
             fileStream.read((char *)CHRMemory.data(), CHRMemory.size());
@@ -63,6 +66,7 @@ Cartridge::Cartridge(const std::string &file)
         {
         }
 
+        // load correct mapper
         switch (mapperID)
         {
         case 0:
@@ -138,6 +142,7 @@ bool Cartridge::ImageValid()
 
 void Cartridge::reset()
 {
+    // resets mapper, not ROM contents
     if (mapper != nullptr)
     {
         mapper->reset();

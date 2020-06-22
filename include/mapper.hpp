@@ -17,6 +17,7 @@ public:
     virtual void reset() = 0;
 
 protected:
+    // stored locally
     uint8_t PRGBanks = 0;
     uint8_t CHRBanks = 0;
 

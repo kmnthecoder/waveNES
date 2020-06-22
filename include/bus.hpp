@@ -19,10 +19,9 @@ public:
     PPU ppu;
     std::shared_ptr<Cartridge> cart;
     std::array<uint8_t, 2048> cpuRam;
-    //uint8_t cpuRam[2048];
     uint8_t controller[2];
 
-public:
+public: // bus r/w
     uint8_t cpuRead(uint16_t addr, bool readOnly = false);
     void cpuWrite(uint16_t addr, uint8_t data);
 

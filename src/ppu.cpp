@@ -1,8 +1,8 @@
 #include "ppu.hpp"
-//#include "bus.hpp"
 
 PPU::PPU()
 {
+    // stores the NES palette
     palScreen[0x00] = olc::Pixel(84, 84, 84);
     palScreen[0x01] = olc::Pixel(0, 30, 116);
     palScreen[0x02] = olc::Pixel(8, 16, 144);
@@ -198,8 +198,6 @@ uint8_t PPU::ppuRead(uint16_t addr, bool rdonly)
     }
     else if (addr >= 0x0000 && addr <= 0x1FFF)
     {
-        // If the cartridge cant map the address, have
-        // a physical location ready here
         data = patternTable[(addr & 0x1000) >> 12][addr & 0x0FFF];
     }
     else if (addr >= 0x2000 && addr <= 0x3EFF)
@@ -208,7 +206,7 @@ uint8_t PPU::ppuRead(uint16_t addr, bool rdonly)
 
         if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
         {
-            // Vertical
+            // vertical
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 data = nameTable[0][addr & 0x03FF];
@@ -228,7 +226,7 @@ uint8_t PPU::ppuRead(uint16_t addr, bool rdonly)
         }
         else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
         {
-            // Horizontal
+            // horizontal
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 data = nameTable[0][addr & 0x03FF];
@@ -280,7 +278,7 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
         addr &= 0x0FFF;
         if (cartridge->mirror == Cartridge::MIRROR::VERTICAL)
         {
-            // Vertical
+            // vertical
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 nameTable[0][addr & 0x03FF] = data;
@@ -300,7 +298,7 @@ void PPU::ppuWrite(uint16_t addr, uint8_t data)
         }
         else if (cartridge->mirror == Cartridge::MIRROR::HORIZONTAL)
         {
-            // Horizontal
+            // horizontal
             if (addr >= 0x0000 && addr <= 0x03FF)
             {
                 nameTable[0][addr & 0x03FF] = data;
@@ -341,7 +339,11 @@ void PPU::ConnectCartridge(const std::shared_ptr<Cartridge> &cartridge)
 
 void PPU::tick()
 {
+    // lamda functions contain various actions to be performed
+    // depending upon the output of state machine for a given
+    // scanline/cycle combo
 
+    // increment background tile pointer one tile/column horizontally
     auto IncrementScrollX = [&]() {
         if (mask.render_bg || mask.render_sprites)
         {
@@ -357,6 +359,7 @@ void PPU::tick()
         }
     };
 
+    // increment background tile pointer one scanline vertically
     auto IncrementScrollY = [&]() {
         if (mask.render_bg || mask.render_sprites)
         {
@@ -384,6 +387,8 @@ void PPU::tick()
         }
     };
 
+    // transfer the temporarily stored horizontal nametable access info into
+    // the pointer
     auto TransferAddressX = [&]() {
         if (mask.render_bg || mask.render_sprites)
         {
@@ -392,6 +397,8 @@ void PPU::tick()
         }
     };
 
+    // transfer the temporarily stored vertical nametable access info into
+    // the pointer
     auto TransferAddressY = [&]() {
         if (mask.render_bg || mask.render_sprites)
         {
@@ -401,6 +408,7 @@ void PPU::tick()
         }
     };
 
+    // prime in-effect backgroudn tile shifters ready for outputting next 8 pixels in scanline
     auto LoadBackgroundShifters = [&]() {
         bg_shifter_pattern_lo = (bg_shifter_pattern_lo & 0xFF00) | bg_next_tile_lsb;
         bg_shifter_pattern_hi = (bg_shifter_pattern_hi & 0xFF00) | bg_next_tile_msb;
@@ -409,6 +417,7 @@ void PPU::tick()
         bg_shifter_attrib_hi = (bg_shifter_attrib_hi & 0xFF00) | ((bg_next_tile_attrib & 0b10) ? 0xFF : 0x00);
     };
 
+    // shifters shift their contents by 1 every cycle
     auto UpdateShifters = [&]() {
         if (mask.render_bg)
         {
@@ -422,6 +431,7 @@ void PPU::tick()
         }
     };
 
+    // all but 1 of the scanlines is visible to the user
     if (scanline >= -1 && scanline < 240)
     {
 
@@ -516,9 +526,10 @@ void PPU::tick()
         }
     }
 
-    uint8_t bg_pixel = 0x00;
-    uint8_t bg_palette = 0x00;
+    uint8_t bg_pixel = 0x00; // 2 bit pixel to be rendered
+    uint8_t bg_palette = 0x00; // 3 bit index of palette the pixel indexes
 
+    // only render backgrounds if the PPU is enabled to do so
     if (mask.render_bg)
     {
         uint16_t bit_mux = 0x8000 >> fine_x;
@@ -532,8 +543,6 @@ void PPU::tick()
         uint8_t bg_pal1 = (bg_shifter_attrib_hi & bit_mux) > 0;
         bg_palette = (bg_pal1 << 1) | bg_pal0;
     }
-
-    //spriteScreen.SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
 
     spriteScreen.SetPixel(cycle - 1, scanline, GetColourFromPaletteRam(bg_palette, bg_pixel));
 
@@ -562,23 +571,36 @@ olc::Sprite &PPU::GetNameTable(uint8_t i)
 
 olc::Sprite &PPU::GetPatternTable(uint8_t i, uint8_t palette)
 {
+    // draws CHR ROM for given pattern table into an olc::Sprite
+    // uses specified palette
+
+    // loop through 16x16 tiles
     for (uint16_t tileY = 0; tileY < 16; tileY++)
     {
         for (uint16_t tileX = 0; tileX < 16; tileX++)
         {
+            // convert 2d tile coordinate into 1d offset into pattern table memory
             uint16_t offset = tileY * 256 + tileX * 16;
 
+            // loop through 8 rows of 8 pixels
             for (uint16_t row = 0; row < 8; row++)
             {
+                // for each row, need to read both bit planes of the character
+                // in order to extract least/most significant bits of the 2 bit pixel value
                 uint8_t tile_lsb = ppuRead(i * 0x1000 + offset + row + 0x0000);
                 uint8_t tile_msb = ppuRead(i * 0x1000 + offset + row + 0x0008);
 
+                // need to interate through the 8 bit words
+                // combining them to give final pixel index
                 for (uint16_t col = 0; col < 8; col++)
                 {
                     uint8_t pixel = (tile_lsb & 0x01) + (tile_msb & 0x01);
                     tile_lsb >>= 1;
                     tile_msb >>= 1;
 
+                    // we have location and NES pixel value for specific location
+                    // in the pattern table.
+                    // can translate that to screen colour and xy location in sprite
                     spritePatternTable[i].SetPixel(
                         tileX * 8 + (7 - col),
                         tileY * 8 + row,
@@ -588,11 +610,13 @@ olc::Sprite &PPU::GetPatternTable(uint8_t i, uint8_t palette)
         }
     }
 
+    // return updated sprite
     return spritePatternTable[i];
 }
 
 olc::Pixel &PPU::GetColourFromPaletteRam(uint8_t palette, uint8_t pixel)
 {
+    // takes a specified palette and pixel index and returns the appropriate screen colour
     return palScreen[ppuRead(0x3F00 + (palette << 2) + pixel) & 0x3F];
 }
 

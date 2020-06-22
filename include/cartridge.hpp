@@ -9,7 +9,6 @@
 
 #include "mapper0.hpp"
 
-
 class Cartridge
 {
 public:

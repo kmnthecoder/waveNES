@@ -4,6 +4,8 @@
 
 CPU::CPU()
 {
+	// translation table, 16x16 entries = 256 instructions
+	// an intialiser list of initialiser lists
     using a = CPU;
     LookupTable =
         {
@@ -270,6 +272,8 @@ CPU::~CPU() {}
 
 uint8_t CPU::read(uint16_t addr)
 {
+	// read only usually set to false
+	// some devices on the bus may change state after being read from
     return bus->cpuRead(addr, false);
 }
 
@@ -327,8 +331,11 @@ uint8_t CPU::fetch()
     return fetched;
 }
 
+// forces 6502 CPU into a known state. 
+// hard wired into CPU
 void CPU::reset()
 {
+	// specific address for program counter
     addr_abs = 0xFFFC;
     uint16_t lo = read(addr_abs + 0);
     uint16_t hi = read(addr_abs + 1);
@@ -345,6 +352,7 @@ void CPU::reset()
     addr_abs = 0x0000;
     fetched = 0x00;
 
+	// reset takes 8 cycles
     cycles = 8;
 }
 
@@ -352,17 +360,20 @@ void CPU::InterruptReq()
 {
     if (GetFlag(I) == 0)
     {
+		// push PC to stack
         write(0x0100 + sp, (pc >> 8) & 0x00FF);
         sp--;
         write(0x0100 + sp, pc & 0x00FF);
         sp--;
 
+		// push status register to stack
         SetFlag(B, 0);
         SetFlag(U, 1);
         SetFlag(I, 1);
         write(0x0100 + sp, p_flag);
         sp--;
 
+		// read new PC from fixed address
         addr_abs = 0xFFFE;
         uint16_t lo = read(addr_abs + 0);
         uint16_t hi = read(addr_abs + 1);
@@ -372,6 +383,7 @@ void CPU::InterruptReq()
     }
 }
 
+// same as IRQ but cannot be ignored
 void CPU::NonMaskInterrupt()
 {
     write(0x0100 + sp, (pc >> 8) & 0x00FF);
@@ -553,6 +565,8 @@ bool CPU::complete()
     return cycles == 0;
 }
 
+// disassembly function, not required for emulation
+// turns binary instruction code into human readable form
 std::map<uint16_t, std::string> CPU::disassemble(uint16_t nStart, uint16_t nStop)
 {
 	uint32_t addr = nStart;

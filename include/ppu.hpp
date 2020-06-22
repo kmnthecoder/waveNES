@@ -102,28 +102,28 @@ private:
         uint16_t reg = 0x0000;
     };
 
+    // pixel position info
     int16_t scanline = 0;
     int16_t cycle = 0;
 
     uint8_t addr_latch = 0x00;
     uint8_t ppu_data_buffer = 0x00;
 
-    loopy_register vram_addr;
-    loopy_register tram_addr;
+    loopy_register vram_addr; // active pointer addr into nametable to extract3 bg tile info
+    loopy_register tram_addr; // temp store of info to be transferred into pointer
 
+    // horizontral pixel offset
     uint8_t fine_x = 0x00;
 
+    // bg rendering
     uint8_t bg_next_tile_id = 0x00;
     uint8_t bg_next_tile_attrib = 0x00;
     uint8_t bg_next_tile_lsb = 0x00;
     uint8_t bg_next_tile_msb = 0x00;
-
     uint16_t bg_shifter_pattern_lo = 0x0000;
     uint16_t bg_shifter_pattern_hi = 0x0000;
     uint16_t bg_shifter_attrib_lo = 0x0000;
     uint16_t bg_shifter_attrib_hi = 0x0000;
-
-    //uint16_t ppu_addr = 0x0000;
 };
 
 #endif
