@@ -3,7 +3,7 @@ CC := g++
 SRC_DIR := src
 OBJ_DIR := obj
 # or . if you want it in the current directory
-BIN_DIR := .
+BIN_DIR := bin
 EXENAME := nes
 
 EXE := $(BIN_DIR)/$(EXENAME)

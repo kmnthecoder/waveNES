@@ -127,10 +127,10 @@ public:
 		Clear(olc::VERY_DARK_MAGENTA);
 
 		nes.controller[0] = 0x00;
-		nes.controller[0] |= GetKey(olc::Key::X).bHeld ? 0x80 : 0x00;
-		nes.controller[0] |= GetKey(olc::Key::Z).bHeld ? 0x40 : 0x00;
-		nes.controller[0] |= GetKey(olc::Key::A).bHeld ? 0x20 : 0x00;
-		nes.controller[0] |= GetKey(olc::Key::S).bHeld ? 0x10 : 0x00;
+		nes.controller[0] |= GetKey(olc::Key::A).bHeld ? 0x80 : 0x00; // a
+		nes.controller[0] |= GetKey(olc::Key::S).bHeld ? 0x40 : 0x00; // b
+		nes.controller[0] |= GetKey(olc::Key::Z).bHeld ? 0x10 : 0x00; // start
+		nes.controller[0] |= GetKey(olc::Key::X).bHeld ? 0x20 : 0x00; // select
 		nes.controller[0] |= GetKey(olc::Key::UP).bHeld ? 0x08 : 0x00;
 		nes.controller[0] |= GetKey(olc::Key::DOWN).bHeld ? 0x04 : 0x00;
 		nes.controller[0] |= GetKey(olc::Key::LEFT).bHeld ? 0x02 : 0x00;
@@ -197,6 +197,16 @@ public:
 		DrawCpu(516, 2);
 		DrawCode(516, 72, 24);
 
+		// Draw OAM Contents (first 26 out of 64) ======================================
+		/*
+		for (int i = 0; i < 26; i++)
+		{
+			std::string s = hex(i, 2) + ": (" + std::to_string(nes.ppu.pOAM[i * 4 + 3]) + ", " + std::to_string(nes.ppu.pOAM[i * 4 + 0]) + ") " + "ID: " + hex(nes.ppu.pOAM[i * 4 + 1], 2) +
+							+" AT: " + hex(nes.ppu.pOAM[i * 4 + 2], 2);
+			DrawString(516, 72 + i * 10, s);
+		}
+		*/
+
 		// Draw Palettes & Pattern Tables ==============================================
 		const int nSwatchSize = 6;
 		for (int p = 0; p < 8; p++)		// For each palette
@@ -211,23 +221,6 @@ public:
 		DrawSprite(648, 348, &nes.ppu.GetPatternTable(1, selectedPalette));
 
 		DrawSprite(0, 0, &nes.ppu.GetScreen(), 2);
-
-		/*
-		olc::Sprite &s = nes.ppu.GetPatternTable(1, selectedPalette);  // 1/2
-
-		for (uint8_t y = 0; y < 30; y++)
-		{
-			for (uint8_t x = 0; x < 32; x++)
-			{
-				//DrawString(x * 16, y * 16, hex((uint32_t)nes.ppu.nameTable[0][y * 32 + x], 2));
-
-				uint8_t id = (uint32_t)nes.ppu.nameTable[0][y * 32 + x];
-				//DrawPartialSprite(x * 16, y * 16, &nes.ppu.GetPatternTable(0, selectedPalette), // or 1
-				DrawPartialSprite(x * 16, y * 16, &s,
-								  (id & 0x0F) << 3, ((id >> 4) & 0x0F) << 3, 8, 8, 2);
-			}
-		}
-		*/
 
 		return true;
 	}
