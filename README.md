@@ -31,7 +31,7 @@ Keys are mapped to:
           D-PAD     =>        Arrow Keys
 
 # Building
-To build, you will need the olcPixelGameEngine.h from OneLoneCoder on Github.
+To build, you will need the olcPixelGameEngine.h from OneLoneCoder on GitHub.
 
 The makefile I used is included in the repository. I compiled with MinGW-w64.
 
