@@ -17,7 +17,7 @@ public:
 	std::map<uint16_t, std::string> mapAsm;
 	std::shared_ptr<Cartridge> cart;
 
-	bool bEmulationRun = false;
+	bool bEmulationRun = true;
 	float fResidualTime = 0.0f;
 
 	uint8_t selectedPalette = 0x00;
