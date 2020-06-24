@@ -40,7 +40,7 @@ $(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
 clean:
-	@$(RM) -rv $(OBJ_DIR) nes.exe
-#$(BIN_DIR)
+	@$(RM) -rv $(OBJ_DIR) $(BIN_DIR)
+#nes.exe
 
 -include $(OBJ:.o=.d)
