@@ -36,4 +36,10 @@ To build, you will need the olcPixelGameEngine.h from OneLoneCoder on GitHub.
 The makefile I used is included in the repository. I compiled with MinGW-w64.
 
 # Lessons learned / Final thoughts
-This project was undertaken as a next step in emulation programming, after finishing a 
+This project was undertaken as a next step in emulation programming, after finishing a CHIP-8 emulator. The jump up from CHIP-8 emulator to an NES emulator was quite a challenging one.
+
+In addition to learning more about how certain system components interact with each other, I've learned more about systems programming. Compared to a CHIP-8 emulator, every aspect was taken a step above in terms of complexity. I've learned that every system has it's own quirks, and every system is designed a certain way, and thus, must be programmed for in a certain way as well.
+
+Even though this project was part of a code along tutorial with javidx9's video tutorial series, I have taken time to understand exactly what he was coding and the reasoning behind is coding decisions, instead of blindly following along. This project could not have been possible without him, and I greatly encourage everyone to check out his work on YouTube and GitHub.
+
+The way the original NES designers worked with the limited hardware they had at the time is astonishing. Using tricks to conserve memory, and to reuse assets were very clever. Considering the time period of the 1980s in which the NES was developed in, one should not underestimate the pioneers who came before us.
