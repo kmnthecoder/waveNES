@@ -4,7 +4,7 @@ SRC_DIR := src
 OBJ_DIR := obj
 # or . if you want it in the current directory
 BIN_DIR := bin
-EXENAME := nes
+EXENAME := waveNES
 
 EXE := $(BIN_DIR)/$(EXENAME)
 SRC := $(wildcard $(SRC_DIR)/*.cpp)
