@@ -9,6 +9,7 @@ Only mapper zero has been implemented, and no sound has been implemented either.
 You can drag and drop an NES ROM onto the program, OR you can use command line arguments to run
 
 Drag and drop:
+
 === // insert picture here // ===
 
 Command Line Format:
@@ -33,7 +34,7 @@ Keys are mapped to:
 # Building
 To build, you will need the olcPixelGameEngine.h from OneLoneCoder on GitHub.
 
-The makefile I used is included in the repository. I compiled with MinGW-w64.
+The makefile I used is included in the repository. I compiled with MinGW-w64 on Windows 10.
 
 # Lessons learned / Final thoughts
 This project was undertaken as a next step in emulation programming, after finishing a CHIP-8 emulator. The jump up from CHIP-8 emulator to an NES emulator was quite a challenging one.
