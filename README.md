@@ -10,7 +10,7 @@ You can drag and drop an NES ROM onto the program, OR you can use command line a
 
 Drag and drop:
 
-=== // insert picture here // ===
+![DragDrop](drag_n_drop.gif)
 
 Command Line Format:
 
