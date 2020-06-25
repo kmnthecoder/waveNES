@@ -1,7 +1,11 @@
 # NES (Nintendo Entertainment System) Emulator
 An NES emulator using C++ and using olcPixelGameEngine for rendering.
 
-=== // insert gifs here // ===
+<img src="https://github.com/kmnthecoder/waveNES/blob/master/demo/smb.gif" width="800" height="509">
+
+<img src="https://github.com/kmnthecoder/waveNES/blob/master/demo/dk.gif" width="800" height="509">
+
+<img src="https://github.com/kmnthecoder/waveNES/blob/master/demo/nestest.gif" width="800" height="509">
 
 Only mapper zero has been implemented, and no sound has been implemented either. Thus, only a limited amount of games can run on this.
 
