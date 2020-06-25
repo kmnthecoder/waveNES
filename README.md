@@ -1,7 +1,7 @@
 # NES (Nintendo Entertainment System) Emulator
 An NES emulator using C++ and using olcPixelGameEngine for rendering.
 
-<img src="https://github.com/kmnthecoder/waveNES/blob/master/demo/smb.gif" width="800" height="509">
+<img src="https://github.com/kmnthecoder/waveNES/blob/master/demo/mario.gif" width="800" height="509">
 
 <img src="https://github.com/kmnthecoder/waveNES/blob/master/demo/dk.gif" width="800" height="509">
 
