@@ -10,7 +10,7 @@ You can drag and drop an NES ROM onto the program, OR you can use command line a
 
 Drag and drop:
 
-![DragDrop](drag_n_drop.gif)
+<img src="https://github.com/kmnthecoder/waveNES/blob/master/drag_n_drop.gif" width="600" height="382">
 
 Command Line Format:
 
